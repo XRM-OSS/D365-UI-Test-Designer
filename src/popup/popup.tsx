@@ -1,31 +1,38 @@
 import * as React from "react";
-import { Button, Form, Nav, Navbar } from "react-bootstrap";
+import { Button, Form, Nav, Navbar, Table } from "react-bootstrap";
 import { popUpState } from "../domain/popUpState";
 import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
+import { CaptureView } from "./CaptureView";
+import { ExportView } from "./ExportView";
 
 const sendMessage = (payload: communicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
 };
 
 export const PopUp: React.FC<any> = () => {
-    const [data, setData] = React.useState({ captures: [] } as popUpState);
+    const [state, setState] = React.useState({ captures: [] } as popUpState);
+    const [activeTab, setActiveTab] = React.useState("#capture");
 
     const updateState = () => {
         sendMessage({ recipient: "background", operation: "getState" }, (response) => {
-            setData(response);
+            setState(response);
         });
     };
 
     React.useEffect(() => {
-        chrome.runtime.onMessage.addListener((response: communicationResponse, sender) => {
-            updateState();
+        if (!state.attributes) {
+            sendMessage({ recipient: "page", operation: "getAttributes" });
+        }
+
+        chrome.runtime.onMessage.addListener((response: popUpState, sender) => {
+            setState(response);
         });
 
         updateState();        
     }, []);
 
     const toggleRecording = () => {
-        sendMessage({ recipient: "page", operation: data.isRecording ? "stopRecording" : "startRecording" });
+        sendMessage({ recipient: "page", operation: state.isRecording ? "stopRecording" : "startRecording" });
     };
 
     return (
@@ -35,20 +42,18 @@ export const PopUp: React.FC<any> = () => {
                     D365-UI-Test Designer
                 </Navbar.Brand>
                 <Navbar.Collapse id="basic-navbar-nav">
-                    <Nav className="mr-auto">
-                        <Nav.Link href="#capture">Capture</Nav.Link>
-                        <Nav.Link href="#export">Export</Nav.Link>
-                        <Nav.Link href="#utility">Utility</Nav.Link>
+                    <Nav defaultActiveKey="#capture" className="mr-auto">
+                        <Nav.Link onClick={() => setActiveTab("#capture")} href="#capture">Capture</Nav.Link>
+                        <Nav.Link onClick={() => setActiveTab("#export")} href="#export">Export</Nav.Link>
+                        <Nav.Link onClick={() => setActiveTab("#utility")} href="#utility">Utility</Nav.Link>
                     </Nav>
                     <Form inline>
-                        <Button variant={data.isRecording ? "success" : "danger"}>{ data.isRecording ? "Stop Recording" : "Start Recording" }</Button>
+                        <Button onClick={toggleRecording} variant={state.isRecording ? "success" : "danger"}>{ state.isRecording ? "Stop Recording" : "Start Recording" }</Button>
                     </Form>
                 </Navbar.Collapse>
             </Navbar>
-            <Button onClick={() => sendMessage({ recipient: "page", operation: "getAttributes" })}>
-                Contact backend
-            </Button>
-            {data.captures.map(d => <div>{JSON.stringify(d)}</div>)}
+            { activeTab === "#capture" && <CaptureView state={state}></CaptureView> }
+            { activeTab === "#export" && <ExportView state={state}></ExportView> }
         </div>
     );
 }

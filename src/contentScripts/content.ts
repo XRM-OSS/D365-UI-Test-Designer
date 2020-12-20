@@ -6,21 +6,55 @@ class pageLogic
 
     }
 
-    private handlers: {[key: string]: () => any} = {
-        "getAttributes": () => {
-            var xrm = this.oss_FindXrm();
-
-            return xrm.Page.getAttribute().map(a => a.getName());
-        }
-    };
-
-    private sendMessage(message: communicationResponse) {
+    private sendMessage = (message: communicationResponse) => {
         window.postMessage({
                 type: "__D365_UITest_Inject",
                 data: message 
             },
             "*");
     }
+
+    private attributeOnChange = (context: Xrm.Events.EventContext) => {
+        const eventSource = (context.getEventSource() as Xrm.Attributes.Attribute)
+        
+        const name = eventSource.getName();
+        const value = eventSource.getValue();
+        const type = eventSource.getAttributeType();
+
+        this.sendMessage({
+            operation: "attributeChanged",
+            recipient: "popup",
+            success: true,
+            data: {
+                name: name,
+                event: "setValue",
+                attributeType: type,
+                value: type === "lookup" ? JSON.stringify(value) : value
+            }
+        });
+    };
+
+    private handlers: {[key: string]: () => any} = {
+        "getAttributes": () => {
+            var xrm = this.oss_FindXrm();
+
+            return xrm.Page.getAttribute().map(a => a.getName());
+        },
+        "startRecording": () => {
+            var xrm = this.oss_FindXrm();
+
+            xrm.Page.getAttribute().forEach(a => a.addOnChange(this.attributeOnChange));
+            
+            return true;
+        },
+        "stopRecording": () => {
+            var xrm = this.oss_FindXrm();
+
+            xrm.Page.getAttribute().forEach(a => a.removeOnChange(this.attributeOnChange));
+            
+            return true;
+        }
+    };
 
     bootstrap() {
         window.addEventListener("message", (event) => {

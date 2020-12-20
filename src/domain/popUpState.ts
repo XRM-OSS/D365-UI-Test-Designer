@@ -1,4 +1,5 @@
 export interface popUpState {
     isRecording?: boolean;
-    captures?: Array<any>;
+    captures?: Array<{event: string; attributeType: string; name: string; value: any;}>;
+    attributes?: Array<string>;
 }
