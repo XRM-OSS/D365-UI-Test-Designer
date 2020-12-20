@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Form, Navbar } from "react-bootstrap";
+import { Button, Form, Nav, Navbar } from "react-bootstrap";
 import { popUpState } from "../domain/popUpState";
 import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
 
@@ -34,9 +34,16 @@ export const PopUp: React.FC<any> = () => {
                 <Navbar.Brand href="#">
                     D365-UI-Test Designer
                 </Navbar.Brand>
-                <Form inline>
-                    <Button variant={data.isRecording ? "success" : "danger"}>{ data.isRecording ? "Stop Recording" : "Start Recording" }</Button>
-                </Form>
+                <Navbar.Collapse id="basic-navbar-nav">
+                    <Nav className="mr-auto">
+                        <Nav.Link href="#capture">Capture</Nav.Link>
+                        <Nav.Link href="#export">Export</Nav.Link>
+                        <Nav.Link href="#utility">Utility</Nav.Link>
+                    </Nav>
+                    <Form inline>
+                        <Button variant={data.isRecording ? "success" : "danger"}>{ data.isRecording ? "Stop Recording" : "Start Recording" }</Button>
+                    </Form>
+                </Navbar.Collapse>
             </Navbar>
             <Button onClick={() => sendMessage({ recipient: "page", operation: "getAttributes" })}>
                 Contact backend
