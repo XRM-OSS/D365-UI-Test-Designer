@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "outDir": "./dist/",
+        "inlineSourceMap": true,
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "baseUrl": ".",
+        "target": "es2018",
+        "jsx": "react",
+        "paths": {
+            "*": [
+                "./node_modules/*",
+                "./types/*"
+            ]
+        }
+    },
+    "include": [
+        "./src/**/*",
+    ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "d365-ui-test-designer",
+  "version": "1.0.0",
+  "description": "A browser extension for designing and capturing D365 UI tests",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "postbuild": "cpx manifest.json dist && cpx src/html/index.html dist"
+  },
+  "author": "Florian Kroenert",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/chrome": "0.0.127",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@types/xrm": "^9.0.33",
+    "cpx": "^1.5.0",
+    "css-loader": "^5.0.1",
+    "react": "^16.14.0",
+    "react-bootstrap": "^1.4.0",
+    "react-dom": "^16.14.0",
+    "source-map-loader": "^1.1.3",
+    "style-loader": "^2.0.0",
+    "ts-loader": "^8.0.12",
+    "typescript": "^4.1.3",
+    "webpack": "^5.11.0",
+    "webpack-cli": "^4.2.0"
+  }
+}
