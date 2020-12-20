@@ -1,6 +1,6 @@
 export interface communicationMessage {
     recipient: "page" | "popup" | "background";
-    operation: "getAttributes" | "getState";
+    operation: "getAttributes" | "getState" | "startRecording" | "stopRecording";
 }
 
 export interface communicationRequest extends communicationMessage {

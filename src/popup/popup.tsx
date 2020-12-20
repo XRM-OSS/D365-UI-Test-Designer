@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Button } from "react-bootstrap";
+import { Button, Form, Navbar } from "react-bootstrap";
+import { popUpState } from "../domain/popUpState";
 import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
 
 const sendMessage = (payload: communicationRequest, cb?: (r: any) => void) => {
@@ -7,24 +8,40 @@ const sendMessage = (payload: communicationRequest, cb?: (r: any) => void) => {
 };
 
 export const PopUp: React.FC<any> = () => {
-    const [data, setData] = React.useState([]);
+    const [data, setData] = React.useState({ captures: [] } as popUpState);
+
+    const updateState = () => {
+        sendMessage({ recipient: "background", operation: "getState" }, (response) => {
+            setData(response);
+        });
+    };
 
     React.useEffect(() => {
-        chrome.runtime.onMessage.addListener((response: communicationResponse, sender, sendResponse: any) => {
-            setData([...data, JSON.stringify(response)]);
+        chrome.runtime.onMessage.addListener((response: communicationResponse, sender) => {
+            updateState();
         });
 
-        sendMessage({ recipient: "background", operation: "getState" }, (response) => {
-            setData([...data, JSON.stringify(response)]);
-        });
+        updateState();        
     }, []);
+
+    const toggleRecording = () => {
+        sendMessage({ recipient: "page", operation: data.isRecording ? "stopRecording" : "startRecording" });
+    };
 
     return (
         <div style={{width: "800px", height: "600px"}}>
+            <Navbar bg="dark" variant="dark">
+                <Navbar.Brand href="#">
+                    D365-UI-Test Designer
+                </Navbar.Brand>
+                <Form inline>
+                    <Button variant={data.isRecording ? "success" : "danger"}>{ data.isRecording ? "Stop Recording" : "Start Recording" }</Button>
+                </Form>
+            </Navbar>
             <Button onClick={() => sendMessage({ recipient: "page", operation: "getAttributes" })}>
                 Contact backend
             </Button>
-            {data.map(d => <div>{d}</div>)}
+            {data.captures.map(d => <div>{JSON.stringify(d)}</div>)}
         </div>
     );
 }
