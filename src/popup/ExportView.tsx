@@ -52,8 +52,9 @@ export const ExportView: React.FC<ExportViewProps> = ({state}) => {
             await xrmTest.Navigation.openCreateForm("account");
 
             ${state.captures
-                .filter(e => e.event === "setValue")
-                .map(e => `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value}"` : e.value})`)
+                .map(e => e.event === "setValue"
+                    ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value}"` : e.value})`
+                    : `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`)
                 .join("\n\t\t")
             }
         });

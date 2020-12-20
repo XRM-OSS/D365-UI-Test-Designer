@@ -35,6 +35,10 @@ export const PopUp: React.FC<any> = () => {
         sendMessage({ recipient: "page", operation: state.isRecording ? "stopRecording" : "startRecording" });
     };
 
+    const addRow = (newRow: any) => {
+        setState({...state, captures: [...state.captures, newRow]});
+    }
+
     return (
         <div style={{width: "800px", height: "600px"}}>
             <Navbar bg="dark" variant="dark">
@@ -52,7 +56,7 @@ export const PopUp: React.FC<any> = () => {
                     </Form>
                 </Navbar.Collapse>
             </Navbar>
-            { activeTab === "#capture" && <CaptureView state={state}></CaptureView> }
+            { activeTab === "#capture" && <CaptureView addRow={addRow} state={state}></CaptureView> }
             { activeTab === "#export" && <ExportView state={state}></ExportView> }
         </div>
     );
