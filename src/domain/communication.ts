@@ -1,5 +1,5 @@
 export interface communicationMessage {
-    recipient: "page" | "popup" | "background";
+    recipient: "page" | "popup";
     operation: "getAttributes" | "getState" | "startRecording" | "stopRecording" | "attributeChanged";
 }
 

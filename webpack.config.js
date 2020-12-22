@@ -9,7 +9,7 @@ module.exports = {
     },
     output: {
         filename: "[name].js",
-        path: __dirname + "/dist/js"
+        path: __dirname + "/dist"
     },
 
     // Enable sourcemaps for debugging webpack's output.

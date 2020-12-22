@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "postbuild": "cpx manifest.json dist && cpx src/html/index.html dist"
+    "postbuild": "copyfiles manifest.json dist; copyfiles -f src/html/index.html dist; copyfiles -f src/assets/*.png dist --verbose"
   },
   "author": "Florian Kroenert",
   "license": "GPL-3.0-or-later",
@@ -16,7 +16,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/xrm": "^9.0.33",
     "bootstrap": "^4.5.3",
-    "cpx": "^1.5.0",
+    "copyfiles": "^2.4.1",
     "css-loader": "^5.0.1",
     "react": "^16.14.0",
     "react-bootstrap": "^1.4.0",

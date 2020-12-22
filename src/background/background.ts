@@ -1,18 +1,22 @@
 import { popUpState } from "../domain/popUpState";
-import { communicationMessage, communicationResponse } from "../domain/communication";
+import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
+import { getState, setState } from "../domain/storage";
 
-const state: popUpState = {
-    isRecording: false,
-    captures: []
+const processMessageToPage = async (request: communicationRequest) => {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, request);
+    });
 };
 
-const processMessageToPopUp = (request: communicationResponse) => {
+const processMessageToPopUp = async (request: communicationResponse) => {
+    const state = await getState();
+
     switch (request.operation) {
         case "startRecording":
-            state.isRecording = request.data;
+            state.isRecording = request.success;
             break;
         case "stopRecording": 
-            state.isRecording = !request.data;
+            state.isRecording = !request.success;
             break;
         case "getAttributes":
             state.attributes = request.data;
@@ -22,29 +26,36 @@ const processMessageToPopUp = (request: communicationResponse) => {
             break;
     }
 
+    await setState(state);
+
     console.log("Backend script received message for popup: " + JSON.stringify(request));
     chrome.runtime.sendMessage(state);
-}
+};
 
 // Add event listener for extension events
 chrome.runtime.onMessage.addListener((request: communicationMessage, sender, sendResponse) => {
-    console.log(JSON.stringify(request));
-
     switch(request.recipient) {
-        case "background":
-            sendResponse(state);
-            break;
         case "popup":
             processMessageToPopUp(request as communicationResponse);
             break;
         case "page":
             console.log("Backend script received message for page: " + JSON.stringify(request));
-
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, request);
-            });
+            processMessageToPage(request as communicationRequest);
             break;
         default:
             break;
         }
+});
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
+        if (tabs[0].id !== tabId) {
+            return;
+        }
+
+        const state = await getState();
+        state.isRecording = false;
+
+        await setState(state);
+    });
 });

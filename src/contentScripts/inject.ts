@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener((request: communicationRequest, sender, sen
 
 const s = document.createElement('script');
 
-s.src = chrome.runtime.getURL('js/content.js');
+s.src = chrome.runtime.getURL('content.js');
 s.onload = function() {
     (this as any).remove();
 };

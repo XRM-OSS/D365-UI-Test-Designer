@@ -4,6 +4,7 @@ import { popUpState } from "../domain/popUpState";
 import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
 import { CaptureView } from "./CaptureView";
 import { ExportView } from "./ExportView";
+import { getState } from "../domain/storage";
 
 const sendMessage = (payload: communicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
@@ -13,10 +14,9 @@ export const PopUp: React.FC<any> = () => {
     const [state, setState] = React.useState({ captures: [] } as popUpState);
     const [activeTab, setActiveTab] = React.useState("#capture");
 
-    const updateState = () => {
-        sendMessage({ recipient: "background", operation: "getState" }, (response) => {
-            setState(response);
-        });
+    const updateState = async () => {
+        const newState = await getState();
+        setState(newState);
     };
 
     React.useEffect(() => {
