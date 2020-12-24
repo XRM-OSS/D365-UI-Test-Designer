@@ -1,8 +1,7 @@
 {
     "compilerOptions": {
-        "declaration": true,
         "outDir": "./dist/",
-        "inlineSourceMap": true,
+        "sourceMap": true,
         "esModuleInterop": true,
         "noImplicitAny": true,
         "module": "commonjs",

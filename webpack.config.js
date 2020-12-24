@@ -3,9 +3,9 @@ const path = require("path");
 module.exports = {
     entry: {
         popup: "./src/popup/index.tsx",
-        background: "./src/background/background.ts",
-        content: "./src/contentScripts/content.ts",
-        inject: "./src/contentScripts/inject.ts"
+        background: "./src/background/Background.ts",
+        content: "./src/contentScripts/Content.ts",
+        inject: "./src/contentScripts/Inject.ts"
     },
     output: {
         filename: "[name].js",
@@ -13,7 +13,7 @@ module.exports = {
     },
 
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
+    devtool: 'inline-source-map',
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.

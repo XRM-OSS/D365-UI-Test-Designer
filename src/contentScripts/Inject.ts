@@ -1,4 +1,4 @@
-import { communicationRequest } from "../domain/communication";
+import { CommunicationRequest } from "../domain/Communication";
 
 window.addEventListener("message", function(event) {
     // We only accept messages from ourselves
@@ -10,7 +10,7 @@ window.addEventListener("message", function(event) {
     }
   }, false);  
 
-chrome.runtime.onMessage.addListener((request: communicationRequest, sender, sendResponse: any) => {
+chrome.runtime.onMessage.addListener((request: CommunicationRequest, sender, sendResponse: any) => {
     window.postMessage({
             type: "__D365_UITest_Content",
             data: request

@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Button, Form, Nav, Navbar, Table } from "react-bootstrap";
-import { popUpState } from "../domain/popUpState";
-import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
+import { TestSuite } from "../domain/TestSuite";
+import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
 export interface ExportViewProps {
-    state: popUpState
+    state: TestSuite
 }
 
 export const ExportView: React.FC<ExportViewProps> = ({state}) => {
@@ -51,7 +51,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state}) => {
         test("Open new account form", async () => {
             await xrmTest.Navigation.openCreateForm("account");
 
-            ${state.captures
+            ${state.tests[0]?.captures
                 .map(e => e.event === "setValue"
                     ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value}"` : e.value})`
                     : `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`)
@@ -62,7 +62,12 @@ export const ExportView: React.FC<ExportViewProps> = ({state}) => {
         afterAll(() => {
             return xrmTest.close();
         });
-    });`
+    });
+    
+    /** Do not delete, below JSON is your test definition for reimport to D365-UI-Test-Designer
+    ${JSON.stringify(state)}
+    */
+    `;
 
     return (
         <textarea style={{width: "100%", height: "100%"}} value={value} />

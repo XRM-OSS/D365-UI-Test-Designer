@@ -1,17 +1,17 @@
-import { popUpState } from "./popUpState";
+import { TestSuite } from "./TestSuite";
 
-const defaultState: popUpState = {
-    isRecording: false,
-    captures: []
+const defaultState: TestSuite = {
+    recordingToTest: "",
+    tests: []
 };
 
-export const getState = (): Promise<popUpState> => {
+export const getStoredState = (): Promise<TestSuite> => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get("popUpState", ({popUpState}) => chrome.runtime.lastError ? reject(chrome.runtime.lastError.message) : resolve(popUpState ?? defaultState));
     });
 }
 
-export const setState = (state: popUpState) => {
+export const setStoredState = (state: TestSuite) => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.set({ popUpState: state }, () => chrome.runtime.lastError ? reject(chrome.runtime.lastError.message) : resolve(null))
     });

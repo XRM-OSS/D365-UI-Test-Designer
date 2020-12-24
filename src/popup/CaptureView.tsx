@@ -1,14 +1,19 @@
 import * as React from "react";
 import { Button, Form, Nav, Navbar, Table } from "react-bootstrap";
-import { popUpState } from "../domain/popUpState";
-import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
+import { TestDefinition } from "../domain/TestSuite";
+import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
-export interface captureViewProps {
-    state: popUpState;
-    addRow: (data: any) => void;
+export interface CaptureViewProps {
+    test: TestDefinition;
+    attributes: Array<string>;
+    position: number;
+    controls: Array<string>;
+    updateTest: (position: number, test: TestDefinition) => void;
 }
 
-export const CaptureView: React.FC<captureViewProps> = ({state, addRow}) => {
+export const CaptureView: React.FC<CaptureViewProps> = ({test, position, attributes, controls, updateTest}) => {
+    const addAssertion = () => updateTest(position, {...test, captures: (test.captures ?? []).concat([{ event: "assertion", name: "name" }])});
+    
     return (
         <Table responsive="sm">
             <thead>
@@ -16,12 +21,12 @@ export const CaptureView: React.FC<captureViewProps> = ({state, addRow}) => {
                     <th>Event</th>
                     <th>Attribute Name</th>
                     <th>Value</th>
-                    <th>Assertions <Button onClick={() => addRow({ event: "assertion", name: "name" })}>+</Button></th>
+                    <th>Assertions <Button onClick={addAssertion}>+</Button></th>
                 </tr>
             </thead>
             <tbody>
                 {
-                    state.captures?.map(c => c.event === "setValue"
+                    test.captures?.map(c => c.event === "setValue"
                         ? <tr>
                             <td>{c.event}</td>
                             <td>{c.name}</td>
@@ -33,7 +38,7 @@ export const CaptureView: React.FC<captureViewProps> = ({state, addRow}) => {
                                 <Form.Group controlId="exampleForm.ControlSelect1">
                                     <Form.Label>Select assertion field</Form.Label>
                                     <Form.Control as="select">
-                                        {state.attributes.map(a => <option>{a}</option>)}
+                                        {attributes?.map(a => <option>{a}</option>)}
                                     </Form.Control>
                                 </Form.Group>
                             </td>

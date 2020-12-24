@@ -1,12 +1,12 @@
-import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
+import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
-class pageLogic
+class PageLogic
 {
     constructor() {
 
     }
 
-    private sendMessage = (message: communicationResponse) => {
+    private sendMessage = (message: CommunicationResponse) => {
         window.postMessage({
                 type: "__D365_UITest_Inject",
                 data: message 
@@ -63,7 +63,7 @@ class pageLogic
                 return;
             }
 
-            const message: communicationRequest = eventData.data;
+            const message: CommunicationRequest = eventData.data;
             const operation = message.operation;
 
             if (!this.handlers[operation]) {
@@ -90,4 +90,4 @@ class pageLogic
     }
 }
 
-new pageLogic().bootstrap();
+new PageLogic().bootstrap();

@@ -1,12 +1,12 @@
-export interface communicationMessage {
+export interface CommunicationMessage {
     recipient: "page" | "popup";
     operation: "getAttributes" | "getState" | "startRecording" | "stopRecording" | "attributeChanged";
 }
 
-export interface communicationRequest extends communicationMessage {
+export interface CommunicationRequest extends CommunicationMessage {
 }
 
-export interface communicationResponse extends communicationMessage {
+export interface CommunicationResponse extends CommunicationMessage {
     success: boolean;
     data?: any
 }

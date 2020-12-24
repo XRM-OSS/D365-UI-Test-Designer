@@ -1,46 +1,48 @@
-import { popUpState } from "../domain/popUpState";
-import { communicationMessage, communicationRequest, communicationResponse } from "../domain/communication";
-import { getState, setState } from "../domain/storage";
+import { TestSuite } from "../domain/TestSuite";
+import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
+import { getStoredState, setStoredState } from "../domain/Storage";
 
-const processMessageToPage = async (request: communicationRequest) => {
+const processMessageToPage = async (request: CommunicationRequest) => {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         chrome.tabs.sendMessage(tabs[0].id, request);
     });
 };
 
-const processMessageToPopUp = async (request: communicationResponse) => {
-    const state = await getState();
+const processMessageToPopUp = async (request: CommunicationResponse) => {
+    const state = await getStoredState();
 
     switch (request.operation) {
         case "startRecording":
-            state.isRecording = request.success;
+            state.recordingToTest = "asdf";
             break;
         case "stopRecording": 
-            state.isRecording = !request.success;
+            if (request.success) {
+                state.recordingToTest = undefined;
+            }
             break;
         case "getAttributes":
             state.attributes = request.data;
             break;
         case "attributeChanged":
-            state.captures.push(request.data);
+            state.tests[0].captures.push(request.data);
             break;
     }
 
-    await setState(state);
+    await setStoredState(state);
 
     console.log("Backend script received message for popup: " + JSON.stringify(request));
     chrome.runtime.sendMessage(state);
 };
 
 // Add event listener for extension events
-chrome.runtime.onMessage.addListener((request: communicationMessage, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request: CommunicationMessage, sender, sendResponse) => {
     switch(request.recipient) {
         case "popup":
-            processMessageToPopUp(request as communicationResponse);
+            processMessageToPopUp(request as CommunicationResponse);
             break;
         case "page":
             console.log("Backend script received message for page: " + JSON.stringify(request));
-            processMessageToPage(request as communicationRequest);
+            processMessageToPage(request as CommunicationRequest);
             break;
         default:
             break;
@@ -53,9 +55,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             return;
         }
 
-        const state = await getState();
-        state.isRecording = false;
+        const state = await getStoredState();
+        state.recordingToTest = undefined;
 
-        await setState(state);
+        await setStoredState(state);
     });
 });
