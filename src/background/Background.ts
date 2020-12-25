@@ -20,8 +20,8 @@ const processMessageToPopUp = async (request: CommunicationResponse) => {
                 state.recordingToTest = undefined;
             }
             break;
-        case "getAttributes":
-            state.attributes = request.data;
+        case "getControls":
+            state.controls = request.data;
             break;
         case "attributeChanged":
             state.tests[0].captures.push(request.data);

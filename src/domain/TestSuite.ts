@@ -12,9 +12,18 @@ export interface TestDefinition {
     postTestNavigation?: any;
 }
 
+export interface ControlState {
+    controlName: string;
+    controlType: string;
+    label: string;
+    logicalName: string;
+    requiredLevel: Xrm.Attributes.RequirementLevel;
+    value: any;
+    attributeType: Xrm.Attributes.AttributeType;
+}
+
 export interface TestSuite {
     recordingToTest?: string;
     tests?: Array<TestDefinition>;
-    attributes?: Array<string>;
-    controls?: Array<string>;
+    controls?: Array<ControlState>;
 }

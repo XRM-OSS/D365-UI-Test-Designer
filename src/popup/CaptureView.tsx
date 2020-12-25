@@ -1,27 +1,33 @@
 import * as React from "react";
-import { Button, Form, Nav, Navbar, Table } from "react-bootstrap";
-import { TestDefinition } from "../domain/TestSuite";
+import { ControlState, TestDefinition } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
+import { DefaultButton } from "@fluentui/react/lib/Button";
+import { Dropdown, DropdownMenuItemType, IDropdownOption } from "@fluentui/react/lib/Dropdown";
+import { Checkbox } from "@fluentui/react/lib/Checkbox";
 
 export interface CaptureViewProps {
     test: TestDefinition;
-    attributes: Array<string>;
     position: number;
-    controls: Array<string>;
+    controls: Array<ControlState>;
     updateTest: (position: number, test: TestDefinition) => void;
 }
 
-export const CaptureView: React.FC<CaptureViewProps> = ({test, position, attributes, controls, updateTest}) => {
+export const CaptureView: React.FC<CaptureViewProps> = ({test, position, controls, updateTest}) => {
     const addAssertion = () => updateTest(position, {...test, captures: (test.captures ?? []).concat([{ event: "assertion", name: "name" }])});
     
+    const options: IDropdownOption[] = [
+        { key: 'attributesHeader', text: 'Attributes', itemType: DropdownMenuItemType.Header },
+        ...(controls ?? []).map(a => ({ key: a.controlName, text: a.label }))
+      ];
+
     return (
-        <Table responsive="sm">
+        <table>
             <thead>
                 <tr>
                     <th>Event</th>
                     <th>Attribute Name</th>
                     <th>Value</th>
-                    <th>Assertions <Button onClick={addAssertion}>+</Button></th>
+                    <th>Assertions <DefaultButton onClick={addAssertion}>+</DefaultButton></th>
                 </tr>
             </thead>
             <tbody>
@@ -35,30 +41,24 @@ export const CaptureView: React.FC<CaptureViewProps> = ({test, position, attribu
                         : <tr>
                             <td>{c.event}</td>
                             <td>
-                                <Form.Group controlId="exampleForm.ControlSelect1">
-                                    <Form.Label>Select assertion field</Form.Label>
-                                    <Form.Control as="select">
-                                        {attributes?.map(a => <option>{a}</option>)}
-                                    </Form.Control>
-                                </Form.Group>
+                                <Dropdown
+                                    placeholder="Select assertion target"
+                                    label="Assertion Target"
+                                    options={options}
+                                />
                             </td>
                             <td>
-                                <Form.Group controlId="formBasicCheckbox">
-                                    <Form.Check type="checkbox" label="Assert current value" />
-                                </Form.Group>
+                                <Checkbox label="Assert current value" />
                             </td>
                             <td>
-                                <Form.Group controlId="formBasicCheckbox">
-                                    <Form.Check type="checkbox" label="Assert current visibility state" />
-                                </Form.Group>
-                                <Form.Group controlId="formBasicCheckbox">
-                                    <Form.Check type="checkbox" label="Assert current readonly state" />
-                                </Form.Group>
+                                <Checkbox label="Assert current visibility state" />
+                                <Checkbox label="Assert current lock state" />
+                                <Checkbox label="Assert current field level" />
                             </td>
                         </tr>
                     )
                 }
             </tbody>
-        </Table>
+        </table>
     );
 }

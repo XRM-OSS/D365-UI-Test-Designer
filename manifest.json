@@ -24,7 +24,26 @@
         "persistent": false
     },
     "web_accessible_resources": [
-        "content.js"
+        "content.js",
+        "fonts/fabric-icons-0-467ee27f.woff",
+        "fonts/fabric-icons-13-c3989a02.woff",
+        "fonts/fabric-icons-16-9cf93f3b.woff",
+        "fonts/fabric-icons-4-a656cc0a.woff",
+        "fonts/fabric-icons-8-6fdf1528.woff",
+        "fonts/fabric-icons-10-c4ded8e4.woff",
+        "fonts/fabric-icons-14-5cf58db8.woff",
+        "fonts/fabric-icons-17-0c4ed701.woff",
+        "fonts/fabric-icons-5-f95ba260.woff",
+        "fonts/fabric-icons-9-c6162b42.woff",
+        "fonts/fabric-icons-11-2a8393d6.woff",
+        "fonts/fabric-icons-1-4d521695.woff",
+        "fonts/fabric-icons-2-63c99abf.woff",
+        "fonts/fabric-icons-6-ef6fd590.woff",
+        "fonts/fabric-icons-a13498cf.woff",
+        "fonts/fabric-icons-12-7e945a1e.woff",
+        "fonts/fabric-icons-15-3807251b.woff",
+        "fonts/fabric-icons-3-089e217a.woff",
+        "fonts/fabric-icons-7-2b97bb99.woff"
     ],
     "permissions": [
         "activeTab",

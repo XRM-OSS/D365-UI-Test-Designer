@@ -35,10 +35,22 @@ class PageLogic
     };
 
     private handlers: {[key: string]: () => any} = {
-        "getAttributes": () => {
+        "getControls": () => {
             var xrm = this.oss_FindXrm();
 
-            return xrm.Page.getAttribute().map(a => a.getName());
+            return xrm.Page.getControl().map(c => {
+                const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
+
+                return {
+                    controlName: c.getName(),
+                    controlType: c.getControlType(),
+                    label: c.getLabel(),
+                    logicalName: attribute?.getName(),
+                    requiredLevel: attribute?.getRequiredLevel(),
+                    value: attribute?.getValue(),
+                    attributeType: attribute?.getAttributeType()
+                };
+            });
         },
         "startRecording": () => {
             var xrm = this.oss_FindXrm();
