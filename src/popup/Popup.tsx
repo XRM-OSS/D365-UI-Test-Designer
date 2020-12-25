@@ -79,14 +79,12 @@ export const PopUp: React.FC<any> = () => {
         },
         {
             key: "toggleRecording",
-            onRender: () => <DefaultButton
-            text="Primary"
-            primary
-            split
-            splitButtonAriaLabel="See 2 options"
-            aria-roledescription="split button"
-            onClick={toggleRecording}
-          />
+            onRender: () => 
+                <DefaultButton
+                    text={state.recordingToTest ? "Stop Recording" : "Start Recording"}
+                    styles={{root: {backgroundColor: state.recordingToTest ? "green" : "red"}}}
+                    onClick={toggleRecording}
+                />
         }
       ];
     
@@ -118,10 +116,11 @@ export const PopUp: React.FC<any> = () => {
 
         return (
             <CommandBarButton
-            role="menuitem"
-            iconProps={{ iconName: item.icon }}
-            menuProps={item.subMenuProps}
-            text={item.name}
+                role="menuitem"
+                iconProps={{ iconName: item.icon }}
+                menuProps={item.subMenuProps}
+                text={item.name}
+                onClick={item.onClick}
             />
         );
     };

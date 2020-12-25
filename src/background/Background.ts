@@ -51,7 +51,7 @@ chrome.runtime.onMessage.addListener((request: CommunicationMessage, sender, sen
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
-        if (tabs[0].id !== tabId) {
+        if (!tabs[0] || tabs[0].id !== tabId) {
             return;
         }
 

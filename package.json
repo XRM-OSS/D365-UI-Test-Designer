@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "postbuild": "copyfiles manifest.json dist; copyfiles -f src/html/index.html dist; copyfiles -f src/assets/*.png dist --verbose; copyfiles -f node_modules/@uifabric/icons/fonts/*.woff dist/fonts --verbose"
+    "postbuild": "copyfiles manifest.json dist; copyfiles -f src/html/index.html dist; copyfiles -f src/assets/*.png dist --verbose"
   },
   "author": "Florian Kroenert",
   "license": "GPL-3.0-or-later",
