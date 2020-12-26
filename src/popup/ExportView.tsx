@@ -47,7 +47,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state}) => {
             await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
         });
         
-${state.tests.map(t => {
+${state.tests.filter(t => !!t).map(t => {
     return [
         `test("${t.name}", async () => {`,
         t.preTestNavigation ? (t.preTestNavigation.recordId ? `await xrmTest.Navigation.openUpdateForm("${t.preTestNavigation.entity}", "${t.preTestNavigation.recordId}")` : `await xrmTest.Navigation.openCreateForm("${t.preTestNavigation.entity}");`) : undefined,

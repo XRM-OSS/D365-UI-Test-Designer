@@ -15,7 +15,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, suite, updat
 
     return (
         <Stack tokens={sectionStackTokens}>
-            { suite.tests?.map((t, i) => 
+            { suite.tests?.filter(t => !!t).map((t, i) => 
                 <Stack.Item key={`test_${i}`}>
                     <TestView position={i} formState={pageState.formState} updateTest={updateTest} test={t} />
                 </Stack.Item>

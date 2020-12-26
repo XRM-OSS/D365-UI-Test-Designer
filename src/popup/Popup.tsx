@@ -53,7 +53,13 @@ export const PopUp: React.FC<any> = () => {
 
     const updateTest = (position: number, test: TestDefinition) => {
         const newTests = [...testSuite.tests];
-        newTests.splice(position, 1, test);
+
+        if (test) {
+            newTests.splice(position, 1, test);
+        }
+        else {
+            newTests.splice(position, 1);
+        }
 
         persistTestSuite({...testSuite, tests: newTests});
     }
@@ -68,7 +74,7 @@ export const PopUp: React.FC<any> = () => {
     }
 
     const menuProps: IContextualMenuProps = {
-        items: testSuite.tests?.map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
+        items: testSuite.tests?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
         directionalHintFixed: true,
     };
 
