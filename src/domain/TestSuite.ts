@@ -5,25 +5,19 @@ export interface TestCapture {
     value?: any;
 }
 
-export interface TestDefinition {
-    preTestNavigation?: any;
-    name?: string;
-    captures?: Array<TestCapture>;
-    postTestNavigation?: any;
+export interface PreTestNavigation {
+    entity: string;
+    recordId?: string; 
 }
 
-export interface ControlState {
-    controlName: string;
-    controlType: string;
-    label: string;
-    logicalName: string;
-    requiredLevel: Xrm.Attributes.RequirementLevel;
-    value: any;
-    attributeType: Xrm.Attributes.AttributeType;
+export interface TestDefinition {
+    preTestNavigation?: PreTestNavigation;
+    name?: string;
+    actions?: Array<TestCapture>;
+    postTestNavigation?: any;
+    id: string;
 }
 
 export interface TestSuite {
-    recordingToTest?: string;
     tests?: Array<TestDefinition>;
-    controls?: Array<ControlState>;
 }

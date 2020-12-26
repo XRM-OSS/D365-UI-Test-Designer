@@ -1,6 +1,6 @@
 import { TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
-import { getStoredState, setStoredState } from "../domain/Storage";
+import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite } from "../domain/Storage";
 
 const processMessageToPage = async (request: CommunicationRequest) => {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -9,29 +9,33 @@ const processMessageToPage = async (request: CommunicationRequest) => {
 };
 
 const processMessageToPopUp = async (request: CommunicationResponse) => {
-    const state = await getStoredState();
+    const pageState = await getStoredPageState();
+    const testSuite = await getStoredTestSuite();
 
     switch (request.operation) {
         case "startRecording":
-            state.recordingToTest = "asdf";
+            // This will set the test to which we currently record
+            pageState.recordingToTest = request.data;
             break;
         case "stopRecording": 
             if (request.success) {
-                state.recordingToTest = undefined;
+                pageState.recordingToTest = undefined;
             }
             break;
-        case "getControls":
-            state.controls = request.data;
+        case "getFormState":
+            pageState.formState = request.data;
             break;
         case "attributeChanged":
-            state.tests[0].captures.push(request.data);
+            const activeTest = testSuite.tests.find(t => t.id === pageState.recordingToTest);
+            activeTest && activeTest.actions.push(request.data);
             break;
     }
 
-    await setStoredState(state);
+    await setStoredPageState(pageState);
+    await setStoredTestSuite(testSuite);
 
     console.log("Backend script received message for popup: " + JSON.stringify(request));
-    chrome.runtime.sendMessage(state);
+    chrome.runtime.sendMessage("ping");
 };
 
 // Add event listener for extension events
@@ -55,9 +59,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             return;
         }
 
-        const state = await getStoredState();
+        const state = await getStoredPageState();
         state.recordingToTest = undefined;
+        state.formState = undefined;
 
-        await setStoredState(state);
+        await setStoredPageState(state);
     });
 });

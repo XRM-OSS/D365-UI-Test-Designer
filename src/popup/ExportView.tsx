@@ -46,17 +46,18 @@ export const ExportView: React.FC<ExportViewProps> = ({state}) => {
     
             await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
         });
-    
-        test("Open new account form", async () => {
-            await xrmTest.Navigation.openCreateForm("account");
-
-            ${state.tests[0]?.captures
-                .map(e => e.event === "setValue"
-                    ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value}"` : e.value})`
-                    : `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`)
-                .join("\n\t\t")
-            }
-        });
+        
+${state.tests.map(t => {
+    return [
+        `test("${t.name}", async () => {`,
+        t.preTestNavigation ? (t.preTestNavigation.recordId ? `await xrmTest.Navigation.openUpdateForm("${t.preTestNavigation.entity}", "${t.preTestNavigation.recordId}")` : `await xrmTest.Navigation.openCreateForm("${t.preTestNavigation.entity}");`) : undefined,
+        ...(t.actions || [])
+            .map(e => e.event === "setValue"
+                ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value}"` : e.value});`
+                : `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`),
+        "});"
+    ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t" : "\t\t"}${l}`).join("\n");
+}).join("\n\n")}
     
         afterAll(() => {
             return xrmTest.close();

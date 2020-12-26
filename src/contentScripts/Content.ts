@@ -1,3 +1,4 @@
+import { FormState } from "../domain/PageState";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
 class PageLogic
@@ -34,30 +35,34 @@ class PageLogic
         });
     };
 
-    private handlers: {[key: string]: () => any} = {
-        "getControls": () => {
+    private handlers: {[key: string]: (data?: any) => any} = {
+        "getFormState": () => {
             var xrm = this.oss_FindXrm();
 
-            return xrm.Page.getControl().map(c => {
-                const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
+            return {
+                entity: xrm.Page.data.entity.getEntityName(),
+                recordId: xrm.Page.data.entity.getId(),
+                pageElements: xrm.Page.getControl().map(c => {
+                    const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
 
-                return {
-                    controlName: c.getName(),
-                    controlType: c.getControlType(),
-                    label: c.getLabel(),
-                    logicalName: attribute?.getName(),
-                    requiredLevel: attribute?.getRequiredLevel(),
-                    value: attribute?.getValue(),
-                    attributeType: attribute?.getAttributeType()
-                };
-            });
+                    return {
+                        controlName: c.getName(),
+                        controlType: c.getControlType(),
+                        label: c.getLabel(),
+                        logicalName: attribute?.getName(),
+                        requiredLevel: attribute?.getRequiredLevel(),
+                        value: attribute?.getValue(),
+                        attributeType: attribute?.getAttributeType()
+                    };
+                })
+            } as FormState;
         },
-        "startRecording": () => {
+        "startRecording": (testId: string) => {
             var xrm = this.oss_FindXrm();
 
             xrm.Page.getAttribute().forEach(a => a.addOnChange(this.attributeOnChange));
             
-            return true;
+            return testId;
         },
         "stopRecording": () => {
             var xrm = this.oss_FindXrm();
@@ -82,7 +87,7 @@ class PageLogic
                 this.sendMessage({ recipient: "popup", operation: operation, success: false, data: "Operation not found" });
             }
 
-            const data = this.handlers[operation]();
+            const data = this.handlers[operation](message.data);
             this.sendMessage({ recipient: "popup", operation: operation, success: true, data: data });
         });
     }
