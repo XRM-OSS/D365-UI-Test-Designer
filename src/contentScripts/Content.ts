@@ -23,7 +23,7 @@ class PageLogic
         const type = eventSource.getAttributeType();
 
         this.sendMessage({
-            operation: "attributeChanged",
+            operation: "formEvent",
             recipient: "popup",
             success: true,
             data: {
@@ -31,6 +31,17 @@ class PageLogic
                 event: "setValue",
                 attributeType: type,
                 value: type === "lookup" ? JSON.stringify(value) : value
+            }
+        });
+    };
+
+    private onSave = () => {
+        this.sendMessage({
+            operation: "formEvent",
+            recipient: "popup",
+            success: true,
+            data: {
+                event: "save"
             }
         });
     };
@@ -61,7 +72,8 @@ class PageLogic
             var xrm = this.oss_FindXrm();
 
             xrm.Page.getAttribute().forEach(a => a.addOnChange(this.attributeOnChange));
-            
+            xrm.Page.data.entity.addOnSave(this.onSave);
+
             return testId;
         },
         "stopRecording": () => {

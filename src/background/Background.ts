@@ -25,7 +25,7 @@ const processMessageToPopUp = async (request: CommunicationResponse) => {
         case "getFormState":
             pageState.formState = request.data;
             break;
-        case "attributeChanged":
+        case "formEvent":
             const activeTest = testSuite.tests.find(t => t.id === pageState.recordingToTest);
             activeTest && activeTest.actions.push(request.data);
             break;

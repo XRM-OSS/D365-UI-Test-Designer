@@ -1,5 +1,5 @@
 export interface TestCapture {
-    event: string;
+    event: "setValue" | "assertion" | "save";
     attributeType?: string;
     name: string;
     value?: any;

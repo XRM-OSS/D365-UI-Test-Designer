@@ -53,7 +53,7 @@ ${state.tests.map(t => {
         t.preTestNavigation ? (t.preTestNavigation.recordId ? `await xrmTest.Navigation.openUpdateForm("${t.preTestNavigation.entity}", "${t.preTestNavigation.recordId}")` : `await xrmTest.Navigation.openCreateForm("${t.preTestNavigation.entity}");`) : undefined,
         ...(t.actions || [])
             .map(e => e.event === "setValue"
-                ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value}"` : e.value});`
+                ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value.replace(/"/g, '\\"')}"` : e.value});`
                 : `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`),
         "});"
     ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t" : "\t\t"}${l}`).join("\n");

@@ -1,6 +1,6 @@
 export interface CommunicationMessage {
     recipient: "page" | "popup";
-    operation: "getFormState" | "getState" | "startRecording" | "stopRecording" | "attributeChanged";
+    operation: "getFormState" | "getState" | "startRecording" | "stopRecording" | "formEvent";
     data?: any
 }
 
