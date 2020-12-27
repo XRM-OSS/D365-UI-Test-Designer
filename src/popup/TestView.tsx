@@ -16,19 +16,18 @@ import { swapPositions } from "../domain/SwapPositions";
 
 export interface TestViewProps {
     test: TestDefinition;
-    position: number;
     formState: FormState;
-    updateTest: (position: number, test: TestDefinition) => void;
-    moveTestUp: (position: number) => void;
-    moveTestDown: (position: number) => void;
+    updateTest: (id: string, test: TestDefinition) => void;
+    moveTestUp: (id: string) => void;
+    moveTestDown: (id: string) => void;
 }
 
-export const TestView: React.FC<TestViewProps> = ({test, position, formState, updateTest, moveTestUp, moveTestDown}) => {
+export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, moveTestUp, moveTestDown}) => {
     const addAssertion = () => {
         const update: TestDefinition = {
             ...test,
             actions: (test.actions ?? []).concat([{ event: "assertion", name: "name" }])};
-        updateTest(position, update);
+        updateTest(test.id, update);
     };
     const sortedElements = (formState?.pageElements ?? []).sort((a, b) => a.label.localeCompare(b.label));
     
@@ -41,25 +40,25 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
 
     const onChangeName = React.useCallback(
         (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-          updateTest(position, {...test, name: newValue });
+          updateTest(test.id, {...test, name: newValue });
         },
         [test]
     );
 
     const onDelete = React.useCallback(() => {
-          updateTest(position, undefined);
+          updateTest(test.id, undefined);
         },
         [test]
     );
 
     const onMoveUp = React.useCallback(() => {
-            moveTestUp(position);
+            moveTestUp(test.id);
         },
         [test]
     );
 
     const onMoveDown = React.useCallback(() => {
-            moveTestDown(position);
+            moveTestDown(test.id);
         },
         [test]
     );
@@ -72,7 +71,7 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
             const destinationIndex = index - 1;
             swapPositions(test.actions, index, destinationIndex);
 
-            updateTest(position, test);
+            updateTest(test.id, test);
         },
         [test, test.actions]
     );
@@ -85,7 +84,7 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
             const destinationIndex = index + 1;
             swapPositions(test.actions, index, destinationIndex);
 
-            updateTest(position, test);
+            updateTest(test.id, test);
         },
         [test, test.actions]
     );
@@ -93,7 +92,7 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
     const onDeleteAction = React.useCallback((index: number) => {
             test.actions.splice(index, 1);
 
-            updateTest(position, test);
+            updateTest(test.id, test);
         },
         [test, test.actions]
     );
@@ -122,7 +121,7 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
             };
         }
 
-        updateTest(position, {...test, preTestNavigation: preTestNavigation });
+        updateTest(test.id, {...test, preTestNavigation: preTestNavigation });
     };
 
     const classNames = mergeStyleSets({

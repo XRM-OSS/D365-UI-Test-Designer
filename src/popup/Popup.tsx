@@ -29,7 +29,7 @@ export const PopUp: React.FC<any> = () => {
 
     const persistTestSuite = async (suite: TestSuite) => {
         await setStoredTestSuite(suite);
-        setTestSuite(suite);
+        setTestSuite({...suite});
     };
 
     React.useEffect(() => {
@@ -52,8 +52,9 @@ export const PopUp: React.FC<any> = () => {
         sendMessage({ recipient: "page", operation: "startRecording", data: testId });
     };
 
-    const updateTest = (position: number, test: TestDefinition) => {
+    const updateTest = (id: string, test: TestDefinition) => {
         const newTests = [...testSuite.tests];
+        const position = newTests.findIndex(t => t.id === id);
 
         if (test) {
             newTests.splice(position, 1, test);
@@ -76,7 +77,8 @@ export const PopUp: React.FC<any> = () => {
         persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [] }])});
     }
 
-    const moveTestUp = React.useCallback((index: number) => {
+    const moveTestUp = React.useCallback((id: string) => {
+            const index = testSuite.tests.findIndex(t => t.id === id);
             if (index === 0) {
                 return;
             }
@@ -89,7 +91,8 @@ export const PopUp: React.FC<any> = () => {
         [testSuite, testSuite.tests]
     );
 
-    const moveTestDown = React.useCallback((index: number) => {
+    const moveTestDown = React.useCallback((id: string) => {
+            const index = testSuite.tests.findIndex(t => t.id === id);
             if (index === testSuite.tests.length - 1) {
                 return;
             }

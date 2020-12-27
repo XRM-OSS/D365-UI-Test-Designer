@@ -7,9 +7,9 @@ import { PageState } from "../domain/PageState";
 export interface CaptureViewProps {
     suite: TestSuite;
     pageState: PageState
-    updateTest: (position: number, test: TestDefinition) => void;
-    moveTestUp: (position: number) => void;
-    moveTestDown: (position: number) => void;
+    updateTest: (id: string, test: TestDefinition) => void;
+    moveTestUp: (id: string) => void;
+    moveTestDown: (id: string) => void;
 }
 
 export const CaptureView: React.FC<CaptureViewProps> = ({pageState, suite, updateTest, moveTestUp, moveTestDown }) => {
@@ -17,9 +17,9 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, suite, updat
 
     return (
         <Stack tokens={sectionStackTokens}>
-            { suite.tests?.filter(t => !!t).map((t, i) => 
-                <Stack.Item key={`test_${i}`}>
-                    <TestView position={i} formState={pageState.formState} updateTest={updateTest} moveTestUp={moveTestUp} moveTestDown={moveTestDown} test={t} />
+            { suite.tests?.filter(t => !!t).map((t) => 
+                <Stack.Item key={`stack_${t.id}`}>
+                    <TestView key={`test_${t.id}`} formState={pageState.formState} updateTest={updateTest} moveTestUp={moveTestUp} moveTestDown={moveTestDown} test={t} />
                 </Stack.Item>
             ) }
         </Stack>
