@@ -12,6 +12,7 @@ import { Text } from "@fluentui/react/lib/Text";
 import { FormState } from "../domain/PageState";
 import { ActivityItem } from "@fluentui/react/lib/ActivityItem";
 import { mergeStyleSets } from "@fluentui/react/lib/Styling";
+import { swapPositions } from "../domain/SwapPositions";
 
 export interface TestViewProps {
     test: TestDefinition;
@@ -21,8 +22,13 @@ export interface TestViewProps {
 }
 
 export const TestView: React.FC<TestViewProps> = ({test, position, formState, updateTest}) => {
-    const addAssertion = () => updateTest(position, {...test, actions: (test.actions ?? []).concat([{ event: "assertion", name: "name" }])});
-    const sortedElements = (formState?.pageElements ?? []).sort((a, b) => b.label.localeCompare(a.label));
+    const addAssertion = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "assertion", name: "name" }])};
+        updateTest(position, update);
+    };
+    const sortedElements = (formState?.pageElements ?? []).sort((a, b) => a.label.localeCompare(b.label));
     
     const options: IDropdownOption[] = [
         { key: 'attributesHeader', text: 'Attribute Controls', itemType: DropdownMenuItemType.Header },
@@ -35,13 +41,59 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
         (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
           updateTest(position, {...test, name: newValue });
         },
-        []
+        [test]
     );
 
     const onDelete = React.useCallback(() => {
           updateTest(position, undefined);
         },
-        []
+        [test]
+    );
+
+    const onMoveUp = React.useCallback(() => {
+            updateTest(position, undefined);
+        },
+        [test]
+    );
+
+    const onMoveDown = React.useCallback(() => {
+            updateTest(position, undefined);
+        },
+        [test]
+    );
+
+    const onMoveActionUp = React.useCallback((index: number) => {
+            if (index === 0) {
+                return;
+            }
+
+            const destinationIndex = index - 1;
+            swapPositions(test.actions, index, destinationIndex);
+
+            updateTest(position, test);
+        },
+        [test, test.actions]
+    );
+
+    const onMoveActionDown = React.useCallback((index: number) => {
+            if (index === test.actions.length - 1) {
+                return;
+            }
+
+            const destinationIndex = index + 1;
+            swapPositions(test.actions, index, destinationIndex);
+
+            updateTest(position, test);
+        },
+        [test, test.actions]
+    );
+
+    const onDeleteAction = React.useCallback((index: number) => {
+            test.actions.splice(index, 1);
+
+            updateTest(position, test);
+        },
+        [test, test.actions]
     );
 
     const cardTokens: ICardTokens = {
@@ -81,16 +133,12 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
         switch (action.event) {
             case "setValue":
                 return [
-                    <span key={1} className={classNames.eventText}>
-                        { action.event }
-                    </span>,
-                    <span key={2}>{action.name}({action.attributeType}): {action.value}</span>
+                    <span key={1} className={classNames.eventText}>{ action.event } </span>,
+                    <span key={2}>{action.name} ({action.attributeType}): {action.value}</span>
                 ];
             case "save":
                 return [
-                    <span key={1} className={classNames.eventText}>
-                        { action.event }
-                    </span>,
+                    <span key={1} className={classNames.eventText}>{ action.event } </span>,
                     <span key={2}>Form save</span>
                 ];
             default:
@@ -105,6 +153,8 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
     return (
         <Card tokens={cardTokens} styles={{ root: { width: "100%" } }}>
             <Card.Item>
+                <IconButton onClick={onMoveUp} iconProps={{iconName: "ChevronUp"}} />
+                <IconButton onClick={onMoveDown} iconProps={{iconName: "ChevronDown"}} />
                 <IconButton onClick={onDelete} iconProps={{iconName: "Delete"}} />
             </Card.Item>
             <Card.Item tokens={cardSectionTokens}>
@@ -116,10 +166,9 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
                 />
             </Card.Item>
             <Card.Section tokens={cardSectionTokens}>
-                <Text>Initialization Action</Text>
                 <Dropdown
                     placeholder="Select assertion target"
-                    label="Navigate To"
+                    label="Initialization Action (Navigation)"
                     selectedKey={!test.preTestNavigation ? "none" : (test.preTestNavigation.recordId ? "existing" : "new")}
                     onChange={onInitializationActionChange}
                     options={[
@@ -132,20 +181,26 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
             </Card.Section>
             <Card.Section tokens={cardSectionTokens}>
                 <Text>Actions <IconButton aria-label="Add Assertion" label="Add Assertion" iconProps={{iconName: "AddTo"}} onClick={addAssertion} /></Text>
-                {test.actions?.map((c, i) => c.event !== "assertion"
-                        ? <ActivityItem key={`${test.id}_${i}`} isCompact={true} activityDescription={getActivityDescription(c)} activityIcon={<Icon iconName="UserEvent" />} />
-                        : <>
-                            <Dropdown
-                                placeholder="Select assertion target"
-                                label="Assertion Target"
-                                options={options}
-                            />
-                            <Checkbox label="Assert current value" />
-                            <Checkbox label="Assert current visibility state" />
-                            <Checkbox label="Assert current lock state" />
-                            <Checkbox label="Assert current field level" />
-                        </>)
-                }
+                { test.actions?.map((c, i) => 
+                    <div style={{display: "flex", flexDirection: "row"}}>
+                        { c.event !== "assertion"
+                            ? <ActivityItem key={`${test.id}_${i}`} isCompact={true} activityDescription={getActivityDescription(c)} activityIcon={<Icon iconName="UserEvent" />} />
+                            : <>
+                                <Dropdown
+                                    placeholder="Select assertion target"
+                                    options={options}
+                                />
+                                <Checkbox label="Assert current value" />
+                                <Checkbox label="Assert current visibility state" />
+                                <Checkbox label="Assert current lock state" />
+                                <Checkbox label="Assert current field level" />
+                            </>
+                        }
+                        <IconButton onClick={() => onMoveActionUp(i)} iconProps={{iconName: "ChevronUp"}} />
+                        <IconButton onClick={() => onMoveActionDown(i)} iconProps={{iconName: "ChevronDown"}} />
+                        <IconButton onClick={() => onDeleteAction(i)} iconProps={{iconName: "Delete"}} />
+                    </div>
+                )}
             </Card.Section>
         </Card>
     );

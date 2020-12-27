@@ -58,6 +58,13 @@ export const PopUp: React.FC<any> = () => {
             newTests.splice(position, 1, test);
         }
         else {
+            const testToDelete = newTests[position];
+
+            // Stop recording if test that is currently deleted is in active recording
+            if (pageState.recordingToTest === testToDelete.id) {
+                stopRecording();
+            }
+
             newTests.splice(position, 1);
         }
 

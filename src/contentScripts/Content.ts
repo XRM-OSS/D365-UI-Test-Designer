@@ -60,6 +60,8 @@ class PageLogic
                         controlName: c.getName(),
                         controlType: c.getControlType(),
                         label: c.getLabel(),
+                        disabled: (c as any).getDisabled && (c as any).getDisabled(),
+                        visible: c.getVisible() && (!c.getParent() || c.getParent().getVisible()) && (!c.getParent() || !c.getParent().getParent() || c.getParent().getParent().getVisible()),
                         logicalName: attribute?.getName(),
                         requiredLevel: attribute?.getRequiredLevel(),
                         value: attribute?.getValue(),

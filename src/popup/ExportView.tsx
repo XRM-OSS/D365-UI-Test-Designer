@@ -1,9 +1,22 @@
 import * as React from "react";
-import { TestSuite } from "../domain/TestSuite";
+import { TestCapture, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
 export interface ExportViewProps {
     state: TestSuite
+}
+
+const generateExpression = (e: TestCapture) => {
+    switch(e.event) {
+        case "setValue":
+            return `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value.replace(/"/g, '\\"')}"` : e.value});`;
+        case "save":
+            return `await xrmTest.Entity.save();`;
+        case "assertion":
+            return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`;
+        default:
+            return "";
+    }
 }
 
 export const ExportView: React.FC<ExportViewProps> = ({state}) => {
@@ -52,9 +65,7 @@ ${state.tests.filter(t => !!t).map(t => {
         `test("${t.name}", async () => {`,
         t.preTestNavigation ? (t.preTestNavigation.recordId ? `await xrmTest.Navigation.openUpdateForm("${t.preTestNavigation.entity}", "${t.preTestNavigation.recordId}")` : `await xrmTest.Navigation.openCreateForm("${t.preTestNavigation.entity}");`) : undefined,
         ...(t.actions || [])
-            .map(e => e.event === "setValue"
-                ? `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value.replace(/"/g, '\\"')}"` : e.value});`
-                : `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`),
+            .map(generateExpression),
         "});"
     ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t" : "\t\t"}${l}`).join("\n");
 }).join("\n\n")}
