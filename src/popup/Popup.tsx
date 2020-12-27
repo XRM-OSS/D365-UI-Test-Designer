@@ -9,6 +9,7 @@ import { CommandBarButton, DefaultButton, IButtonStyles, IconButton } from "@flu
 import { v4 as uuidv4 } from "uuid";
 import { PageState } from "../domain/PageState";
 import { IContextualMenuProps } from "@fluentui/react/lib/ContextualMenu";
+import { swapPositions } from "../domain/SwapPositions";
 
 const sendMessage = (payload: CommunicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
@@ -74,6 +75,32 @@ export const PopUp: React.FC<any> = () => {
     const addTest = () => {
         persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [] }])});
     }
+
+    const moveTestUp = React.useCallback((index: number) => {
+            if (index === 0) {
+                return;
+            }
+
+            const destinationIndex = index - 1;
+            swapPositions(testSuite.tests, index, destinationIndex);
+
+            persistTestSuite(testSuite);
+        },
+        [testSuite, testSuite.tests]
+    );
+
+    const moveTestDown = React.useCallback((index: number) => {
+            if (index === testSuite.tests.length - 1) {
+                return;
+            }
+
+            const destinationIndex = index + 1;
+            swapPositions(testSuite.tests, index, destinationIndex);
+
+            persistTestSuite(testSuite);
+        },
+        [testSuite, testSuite.tests]
+    );
 
     const clear = () => {
         stopRecording();
@@ -173,13 +200,15 @@ export const PopUp: React.FC<any> = () => {
         <div style={{width: "760px", height: "600px"}}>
             <OverflowSet
                 role="menubar"
-                styles={{root: {backgroundColor: "#f8f9fa"}}}
+                styles={{root: {backgroundColor: "#f8f9fa", position: "sticky", top: "0px", zIndex: 1, padding: "5px" }}}
                 onRenderItem={onRenderItem}
                 onRenderOverflowButton={onRenderOverflowButton}
                 items={navItems.filter(i => !!i)}
             />
-            { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} /> }
-            { activeTab === "#export" && <ExportView state={testSuite}></ExportView> }
+            <div style={{padding: "5px"}}>
+                { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
+                { activeTab === "#export" && <ExportView state={testSuite}></ExportView> }
+            </div>
         </div>
     );
 }

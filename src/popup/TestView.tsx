@@ -19,9 +19,11 @@ export interface TestViewProps {
     position: number;
     formState: FormState;
     updateTest: (position: number, test: TestDefinition) => void;
+    moveTestUp: (position: number) => void;
+    moveTestDown: (position: number) => void;
 }
 
-export const TestView: React.FC<TestViewProps> = ({test, position, formState, updateTest}) => {
+export const TestView: React.FC<TestViewProps> = ({test, position, formState, updateTest, moveTestUp, moveTestDown}) => {
     const addAssertion = () => {
         const update: TestDefinition = {
             ...test,
@@ -51,13 +53,13 @@ export const TestView: React.FC<TestViewProps> = ({test, position, formState, up
     );
 
     const onMoveUp = React.useCallback(() => {
-            updateTest(position, undefined);
+            moveTestUp(position);
         },
         [test]
     );
 
     const onMoveDown = React.useCallback(() => {
-            updateTest(position, undefined);
+            moveTestDown(position);
         },
         [test]
     );

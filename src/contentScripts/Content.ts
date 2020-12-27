@@ -82,7 +82,8 @@ class PageLogic
             var xrm = this.oss_FindXrm();
 
             xrm.Page.getAttribute().forEach(a => a.removeOnChange(this.attributeOnChange));
-            
+            xrm.Page.data.entity.removeOnSave(this.onSave);
+
             return true;
         }
     };
