@@ -1,4 +1,4 @@
-import { FormState } from "../domain/PageState";
+import { FormState, FormTab } from "../domain/PageState";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
 class PageLogic
@@ -53,6 +53,8 @@ class PageLogic
             return {
                 entity: xrm.Page.data.entity.getEntityName(),
                 recordId: xrm.Page.data.entity.getId(),
+                tabs: xrm.Page.ui.tabs.get().map(t => ({ name: t.getName(), label: t.getLabel(), visible: t.getVisible(), expanded: t.getDisplayState() === "expanded"})),
+                sections:  xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ name: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())})),
                 pageElements: xrm.Page.getControl().map(c => {
                     const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
 
@@ -72,6 +74,10 @@ class PageLogic
         },
         "startRecording": (testId: string) => {
             var xrm = this.oss_FindXrm();
+
+            if (!xrm.Page.data || !xrm.Page.data.entity) {
+                return;
+            }
 
             xrm.Page.getAttribute().forEach(a => a.addOnChange(this.attributeOnChange));
             xrm.Page.data.entity.addOnSave(this.onSave);

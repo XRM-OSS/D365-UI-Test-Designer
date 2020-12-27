@@ -1,12 +1,12 @@
 import * as React from "react";
-import { TestCapture, TestSuite } from "../domain/TestSuite";
+import { TestAction, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 
 export interface ExportViewProps {
     state: TestSuite
 }
 
-const generateExpression = (e: TestCapture) => {
+const generateExpression = (e: TestAction) => {
     switch(e.event) {
         case "setValue":
             return `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value.replace(/"/g, '\\"')}"` : e.value});`;
