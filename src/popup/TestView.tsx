@@ -168,7 +168,6 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
             </Card.Item>
             <Card.Section tokens={cardSectionTokens}>
                 <Dropdown
-                    placeholder="Select assertion target"
                     label="Initialization Action (Navigation)"
                     selectedKey={!test.preTestNavigation ? "none" : (test.preTestNavigation.recordId ? "existing" : "new")}
                     onChange={onInitializationActionChange}
@@ -188,13 +187,42 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                             ? <ActivityItem key={`${test.id}_${i}`} isCompact={true} activityDescription={getActivityDescription(c)} activityIcon={<Icon iconName="UserEvent" />} />
                             : <>
                                 <Dropdown
-                                    placeholder="Select assertion target"
+                                    placeholder="Assertion target"
+                                    onChange={(val: any) => {}}
                                     options={options}
                                 />
-                                <Checkbox label="Assert current value" />
-                                <Checkbox label="Assert current visibility state" />
-                                <Checkbox label="Assert current lock state" />
-                                <Checkbox label="Assert current field level" />
+                                <Checkbox label="Assert value" />
+                                <Dropdown
+                                    label="Assert visibility"
+                                    selectedKey={"noop"}
+                                    onChange={(val: any) => {}}
+                                    options={[
+                                        { text: "No-Op", key: "noop" },
+                                        { text: "Visible", key: "visible" },
+                                        { text: "Hidden", key: "hidden" },
+                                    ]}
+                                />
+                                <Dropdown
+                                    label="Assert disabled state"
+                                    selectedKey={"noop"}
+                                    onChange={(val: any) => {}}
+                                    options={[
+                                        { text: "No-Op", key: "noop" },
+                                        { text: "Disabled", key: "disabled" },
+                                        { text: "Enabled", key: "enabled" },
+                                    ]}
+                                />
+                                <Dropdown
+                                    label="Assert field level"
+                                    selectedKey={"noop"}
+                                    onChange={(val: any) => {}}
+                                    options={[
+                                        { text: "No-Op", key: "noop" },
+                                        { text: "None", key: "none" },
+                                        { text: "Recommended", key: "recommended" },
+                                        { text: "Required", key: "required" },
+                                    ]}
+                                />
                             </>
                         }
                         <IconButton onClick={() => onMoveActionUp(i)} iconProps={{iconName: "ChevronUp"}} />
