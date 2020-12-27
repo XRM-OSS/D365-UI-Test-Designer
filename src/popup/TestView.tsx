@@ -120,6 +120,9 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
             ?? formState.tabs.find(t => t.name === option.id)
             ?? formState.sections.find(s => s.name === option.id);
 
+        action.attributeType = (element as any).attributeType;
+        action.attributeName = (element as any).logicalName;
+
         action.assertions = {
             expectedDisableState: { type: (element as any).disabled ? "disabled" : "enabled" },
             expectedFieldLevel: { type: (element as any).requiredLevel ?? "noop" },
@@ -312,18 +315,23 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                                     selectedKey={c.name}
                                     options={options}
                                 />
-                                { c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) && <Dropdown
-                                    label="Assert Value"
-                                    onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedValue?.active} onChange={(e, v) => onUpdateValueAssertionActive(i, v)} />)}
-                                    onChange={(e, v) => onUpdateAssertionValue(i, v)}
-                                    selectedKey={c.assertions.expectedValue?.type ?? "noop"}
-                                    options={[
-                                        { text: "No-Op", id: "noop", key: "noop" },
-                                        { text: "Not null", id: "notnull", key: "notnull" },
-                                        { text: "Null", id: "null", key: "null" },
-                                        { text: "Exact Value", id: "value", key: "value" },
-                                    ]}
-                                /> }
+                                { c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) &&
+                                    <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
+                                        <Dropdown
+                                            label="Assert Value"
+                                            onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedValue?.active} onChange={(e, v) => onUpdateValueAssertionActive(i, v)} />)}
+                                            onChange={(e, v) => onUpdateAssertionValue(i, v)}
+                                            selectedKey={c.assertions.expectedValue?.type ?? "noop"}
+                                            options={[
+                                                { text: "No-Op", id: "noop", key: "noop" },
+                                                { text: "Not null", id: "notnull", key: "notnull" },
+                                                { text: "Null", id: "null", key: "null" },
+                                                { text: "Exact Value", id: "value", key: "value" },
+                                            ]}
+                                        />
+                                        { c.assertions.expectedValue?.type === "value" && <TextField styles={{ root: { width: "100%", marginLeft: "5px"}}} label="Value" disabled value={c.assertions.expectedValue?.value} /> }
+                                    </div>
+                                }
                                 { c.name && <Dropdown
                                     label="Assert visibility"
                                     onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedVisibility?.active} onChange={(e, v) => onUpdateVisibilityAssertionActive(i, v)} />)}

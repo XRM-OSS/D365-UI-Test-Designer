@@ -21,7 +21,9 @@ export interface TestTimeout {
 export interface TestAssertion {
     event: "assertion";
     name?: string;
-    assertions: AssertionDefinition
+    attributeName?: string;
+    assertions: AssertionDefinition;
+    attributeType?: string;
 }
 
 export type TestAction = FormAction | TestAssertion | TestTimeout;

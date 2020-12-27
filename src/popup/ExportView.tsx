@@ -9,13 +9,34 @@ export interface ExportViewProps {
 const generateExpression = (e: TestAction) => {
     switch(e.event) {
         case "setValue":
-            return `await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value.replace(/"/g, '\\"')}"` : e.value});`;
+            return [`await xrmTest.Attribute.setValue("${e.name}", ${typeof(e.value) === "string" && e.attributeType !== "lookup" ? `"${e.value.replace(/"/g, '\\"')}"` : e.value});`];
         case "save":
-            return `await xrmTest.Entity.save();`;
+            return [`await xrmTest.Entity.save();`];
+        case "timeout":
+            return [`await page.waitForTimeout(${e.duration});`];
         case "assertion":
-            return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(true);`;
+            return [
+                (e.assertions.expectedVisibility?.active && e.assertions.expectedVisibility?.type !== "noop")
+                    ? `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(${e.assertions.expectedVisibility.type === "visible"});`
+                    : undefined,
+                (e.assertions.expectedDisableState?.active && e.assertions.expectedDisableState?.type !== "noop")
+                    ? `expect((await xrmTest.Control.get("${e.name}")).isDisabled).toBe(${e.assertions.expectedDisableState.type === "disabled"});`
+                    : undefined,
+                (e.assertions.expectedFieldLevel?.active && e.assertions.expectedFieldLevel?.type !== "noop")
+                    ? `expect((await xrmTest.Attribute.getRequiredLevel("${e.attributeName}"))).toBe("${e.assertions.expectedFieldLevel.type}");`
+                    : undefined,
+                (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "value")
+                    ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toBe(${typeof(e.assertions.expectedValue.value) === "string" && e.attributeType !== "lookup" ? `"${e.assertions.expectedValue.value.replace(/"/g, '\\"')}"` : e.assertions.expectedValue.value});`
+                    : undefined,
+                (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "null")
+                    ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toBeNull();`
+                    : undefined,
+                (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "notnull")
+                ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).not.toBeNull();`
+                    : undefined,
+            ];
         default:
-            return "";
+            return [""];
     }
 }
 
@@ -65,7 +86,7 @@ ${state.tests.filter(t => !!t).map(t => {
         `test("${t.name}", async () => {`,
         t.preTestNavigation ? (t.preTestNavigation.recordId ? `await xrmTest.Navigation.openUpdateForm("${t.preTestNavigation.entity}", "${t.preTestNavigation.recordId}")` : `await xrmTest.Navigation.openCreateForm("${t.preTestNavigation.entity}");`) : undefined,
         ...(t.actions || [])
-            .map(generateExpression),
+            .reduce((all, cur) => [...all, ...generateExpression(cur)], []),
         "});"
     ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t" : "\t\t"}${l}`).join("\n");
 }).join("\n\n")}

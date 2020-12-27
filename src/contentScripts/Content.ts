@@ -57,6 +57,7 @@ class PageLogic
                 sections:  xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ name: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())})),
                 pageElements: xrm.Page.getControl().map(c => {
                     const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
+                    const type = attribute?.getAttributeType();
 
                     return {
                         controlName: c.getName(),
@@ -66,7 +67,7 @@ class PageLogic
                         visible: c.getVisible() && (!c.getParent() || c.getParent().getVisible()) && (!c.getParent() || !c.getParent().getParent() || c.getParent().getParent().getVisible()),
                         logicalName: attribute?.getName(),
                         requiredLevel: attribute?.getRequiredLevel(),
-                        value: attribute?.getValue(),
+                        value: type === "lookup" ? JSON.stringify(attribute?.getValue()) : attribute?.getValue(),
                         attributeType: attribute?.getAttributeType()
                     };
                 })
