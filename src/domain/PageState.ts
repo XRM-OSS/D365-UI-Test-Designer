@@ -1,35 +1,20 @@
-export interface PageElementState {
+import { ControlTypes } from "./ControlTypes";
+
+export interface ControlState {
+    type: ControlTypes;
     controlName: string;
-    controlType: string;
-    label: string;
-    logicalName: string;
-    requiredLevel: Xrm.Attributes.RequirementLevel;
-    value: any;
-    attributeType: Xrm.Attributes.AttributeType;
     visible: boolean;
-    disabled: boolean;
-}
-
-export interface FormContainer {
-    name: string;
-    label: string;
-    visible: boolean;
-}
-
-export interface FormTab extends FormContainer {
-    expanded: boolean;
-}
-
-export interface FormSection extends FormContainer {
-
+    disabled?: boolean;
+    logicalName?: string;
+    attributeType?: Xrm.Attributes.AttributeType;
+    requiredLevel?: Xrm.Attributes.RequirementLevel;
+    value?: any;
 }
 
 export interface FormState {
     entity: string;
     recordId: string;
-    tabs: Array<FormTab>;
-    sections: Array<FormSection>;
-    pageElements: Array<PageElementState>;
+    controlStates: Array<ControlState>;
 }
 
 export interface PageState {

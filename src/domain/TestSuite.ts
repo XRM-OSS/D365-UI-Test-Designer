@@ -1,3 +1,5 @@
+import { EntityControl } from "./ControlTypes";
+
 export interface FormAction {
     event: "setValue" | "save";
     attributeType?: string;
@@ -34,6 +36,7 @@ export interface PreTestNavigation {
 }
 
 export interface TestDefinition {
+    entityLogicalName: string;
     preTestNavigation?: PreTestNavigation;
     name?: string;
     actions?: Array<TestAction>;
@@ -41,6 +44,12 @@ export interface TestDefinition {
     id: string;
 }
 
+export interface EntityMetadata {
+    logicalName: string;
+    controls: Array<EntityControl>;
+}
+
 export interface TestSuite {
+    metadata: {[key: string]: EntityMetadata};
     tests?: Array<TestDefinition>;
 }

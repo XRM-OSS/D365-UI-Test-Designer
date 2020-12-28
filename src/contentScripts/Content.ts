@@ -1,5 +1,7 @@
-import { FormState, FormTab } from "../domain/PageState";
+import { ControlState, FormState } from "../domain/PageState";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
+import { EntityMetadata } from "../domain/TestSuite";
+import { EntityControl } from "../domain/ControlTypes";
 
 class PageLogic
 {
@@ -50,33 +52,60 @@ class PageLogic
         "getFormState": () => {
             var xrm = this.oss_FindXrm();
 
+            if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
+                return;
+            }
+
             return {
                 entity: xrm.Page.data.entity.getEntityName(),
                 recordId: xrm.Page.data.entity.getId(),
-                tabs: xrm.Page.ui.tabs.get().map(t => ({ name: t.getName(), label: t.getLabel(), visible: t.getVisible(), expanded: t.getDisplayState() === "expanded"})),
-                sections:  xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ name: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())})),
-                pageElements: xrm.Page.getControl().map(c => {
+                controlStates: xrm.Page.getControl().map(c => {
                     const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
-                    const type = attribute?.getAttributeType();
-
+            
                     return {
+                        type: "control",
                         controlName: c.getName(),
-                        controlType: c.getControlType(),
-                        label: c.getLabel(),
                         disabled: (c as any).getDisabled && (c as any).getDisabled(),
                         visible: c.getVisible() && (!c.getParent() || c.getParent().getVisible()) && (!c.getParent() || !c.getParent().getParent() || c.getParent().getParent().getVisible()),
                         logicalName: attribute?.getName(),
+                        attributeType: attribute?.getAttributeType(),
                         requiredLevel: attribute?.getRequiredLevel(),
-                        value: type === "lookup" ? JSON.stringify(attribute?.getValue()) : attribute?.getValue(),
-                        attributeType: attribute?.getAttributeType()
-                    };
+                        value: attribute?.getAttributeType() === "lookup" ? JSON.stringify(attribute?.getValue()) : attribute?.getValue() 
+                    } as ControlState;
                 })
+                .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel(), visible: t.getVisible()})))
+                .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())})))
             } as FormState;
+        },
+        "getEntityMetadata": () => {
+            var xrm = this.oss_FindXrm();
+
+            if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
+                return;
+            }
+
+            return {
+                logicalName: xrm.Page.data.entity.getEntityName(),
+                controls: xrm.Page.getControl().map(c => {
+                    const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
+            
+                    return {
+                        type: "control",
+                        controlName: c.getName(),
+                        controlType: c.getControlType(),
+                        label: c.getLabel(),
+                        logicalName: attribute?.getName(),
+                        attributeType: attribute?.getAttributeType()
+                    } as EntityControl;
+                })
+                .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel()})))
+                .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), label: s.getLabel() })))
+            } as EntityMetadata;
         },
         "startRecording": (testId: string) => {
             var xrm = this.oss_FindXrm();
 
-            if (!xrm.Page.data || !xrm.Page.data.entity) {
+            if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
                 return;
             }
 
@@ -87,6 +116,10 @@ class PageLogic
         },
         "stopRecording": () => {
             var xrm = this.oss_FindXrm();
+
+            if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
+                return;
+            }
 
             xrm.Page.getAttribute().forEach(a => a.removeOnChange(this.attributeOnChange));
             xrm.Page.data.entity.removeOnSave(this.onSave);

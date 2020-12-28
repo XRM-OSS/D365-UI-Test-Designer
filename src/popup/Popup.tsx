@@ -5,12 +5,14 @@ import { CaptureView } from "./CaptureView";
 import { ExportView } from "./ImportExportView";
 import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite, defaultTestSuite } from "../domain/Storage";
 import { IOverflowSetItemProps, OverflowSet } from "@fluentui/react/lib/OverflowSet";
-import { CommandBarButton, DefaultButton, IButtonStyles, IconButton } from "@fluentui/react/lib/Button";
+import { CommandBarButton, DefaultButton, IButtonStyles, IconButton, PrimaryButton } from "@fluentui/react/lib/Button";
 import { v4 as uuidv4 } from "uuid";
 import { PageState } from "../domain/PageState";
 import { IContextualMenuProps } from "@fluentui/react/lib/ContextualMenu";
 import { swapPositions } from "../domain/SwapPositions";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { Dialog, DialogFooter, DialogType } from "@fluentui/react/lib/Dialog";
+import { Dropdown } from "@fluentui/react/lib/Dropdown";
 
 const sendMessage = (payload: CommunicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
@@ -20,6 +22,8 @@ export const PopUp: React.FC<any> = () => {
     const [pageState, setPageState] = React.useState({} as PageState);
     const [testSuite, setTestSuite] = React.useState({} as TestSuite);
     const [activeTab, setActiveTab] = React.useState("#capture");
+    const [entitySelectorHidden, setEntitySelectorHidden] = React.useState(true);
+    const [testEntityLogicalName, setTestEntityLogicalName] = React.useState("");
 
     const refreshState = async () => {
         const newPageState = await getStoredPageState();
@@ -37,6 +41,8 @@ export const PopUp: React.FC<any> = () => {
         if (!pageState.formState) {
             sendMessage({ recipient: "page", operation: "getFormState" });
         }
+
+        sendMessage({ recipient: "page", operation: "getEntityMetadata" });
 
         chrome.runtime.onMessage.addListener((response: TestSuite, sender) => {
             refreshState();
@@ -75,7 +81,12 @@ export const PopUp: React.FC<any> = () => {
     }
 
     const addTest = () => {
-        persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [] }])});
+        persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [], entityLogicalName: testEntityLogicalName }])});
+        setEntitySelectorHidden(true);
+    }
+
+    const showTestEntitySelector = () => {
+        setEntitySelectorHidden(false);
     }
 
     const moveTestUp = React.useCallback((id: string) => {
@@ -139,7 +150,7 @@ export const PopUp: React.FC<any> = () => {
             key: "addTest",
             name: "Add Test",
             icon: "Add",
-            onClick: addTest,
+            onClick: showTestEntitySelector,
         },
         {
             key: "clear",
@@ -200,21 +211,47 @@ export const PopUp: React.FC<any> = () => {
         );
     };
 
+    const modalProps = {
+        isBlocking: true,
+        styles: { main: { maxWidth: 450 } }
+    };
+
+    const dialogContentProps = {
+        type: DialogType.normal,
+        title: 'For which entity is your test?',
+        subText: 'If your entity does not show up here, please navigate to a form of the missing entity, so that we can collect its metadata.',
+    };
+
     return (
         <div style={{width: "760px", height: "600px"}}>
-            <ErrorBoundary testSuite={testSuite}>
-                <OverflowSet
-                    role="menubar"
-                    styles={{root: {backgroundColor: "#f8f9fa", position: "sticky", top: "0px", zIndex: 1, padding: "5px" }}}
-                    onRenderItem={onRenderItem}
-                    onRenderOverflowButton={onRenderOverflowButton}
-                    items={navItems.filter(i => !!i)}
+            <Dialog
+                hidden={entitySelectorHidden}
+                onDismiss={() => setEntitySelectorHidden(true)}
+                dialogContentProps={dialogContentProps}
+                modalProps={modalProps}
+            >
+                <Dropdown
+                    label="Entity Logical Name"
+                    onChange={(e, v) => setTestEntityLogicalName(v.id)}
+                    selectedKey={testEntityLogicalName}
+                    options={Object.keys(testSuite?.metadata ?? {}).map(k => ({ text: k, id: k, key: k }))}
                 />
-                <div style={{padding: "5px"}}>
-                    { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
-                    { activeTab === "#export" && <ExportView importTestSuite={persistTestSuite} state={testSuite}></ExportView> }
-                </div>
-            </ErrorBoundary>
+                <DialogFooter>
+                    <PrimaryButton disabled={!testEntityLogicalName} onClick={addTest} text="Ok" />
+                    <DefaultButton onClick={() => setEntitySelectorHidden(true)} text="Cancel" />
+                </DialogFooter>
+            </Dialog>
+            <OverflowSet
+                role="menubar"
+                styles={{root: {backgroundColor: "#f8f9fa", position: "sticky", top: "0px", zIndex: 1, padding: "5px" }}}
+                onRenderItem={onRenderItem}
+                onRenderOverflowButton={onRenderOverflowButton}
+                items={navItems.filter(i => !!i)}
+            />
+            <div style={{padding: "5px"}}>
+                { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
+                { activeTab === "#export" && <ExportView importTestSuite={persistTestSuite} state={testSuite}></ExportView> }
+            </div>
         </div>
     );
 }

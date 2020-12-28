@@ -1,4 +1,4 @@
-import { TestSuite } from "../domain/TestSuite";
+import { EntityMetadata, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite } from "../domain/Storage";
 
@@ -24,6 +24,10 @@ const processMessageToPopUp = async (request: CommunicationResponse) => {
             break;
         case "getFormState":
             pageState.formState = request.data;
+            break;
+        case "getEntityMetadata":
+            const payload = request.data as EntityMetadata;
+            testSuite.metadata[payload.logicalName] = payload;
             break;
         case "formEvent":
             const activeTest = testSuite.tests.find(t => t.id === pageState.recordingToTest);

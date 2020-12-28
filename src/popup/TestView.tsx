@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AssertionDefinition, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestTimeout } from "../domain/TestSuite";
+import { AssertionDefinition, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TestTimeout } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { Dropdown, DropdownMenuItemType, IDropdownOption, IDropdownProps } from "@fluentui/react/lib/Dropdown";
@@ -18,12 +18,13 @@ import { Label } from "@fluentui/react/lib/Label";
 export interface TestViewProps {
     test: TestDefinition;
     formState: FormState;
+    suite: TestSuite;
     updateTest: (id: string, test: TestDefinition) => void;
     moveTestUp: (id: string) => void;
     moveTestDown: (id: string) => void;
 }
 
-export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, moveTestUp, moveTestDown}) => {
+export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updateTest, moveTestUp, moveTestDown}) => {
     const addAssertion = () => {
         const update: TestDefinition = {
             ...test,
@@ -38,19 +39,17 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
         updateTest(test.id, update);
     };
     
-    const sortedElements = (formState?.pageElements ?? []).sort((a, b) => a.label.localeCompare(b.label));
-    const sortedTabs = (formState?.tabs ?? []).sort((a, b) => (a.label ?? a.name).localeCompare((b.label ?? b.name)));
-    const sortedSections = (formState?.sections ?? []).sort((a, b) => (a.label ?? a.name).localeCompare((b.label ?? b.name)));
+    const sortedElements = (suite?.metadata[test.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
 
     const options: IDropdownOption[] = [
         { key: 'attributesHeader', text: 'Attribute Controls', itemType: DropdownMenuItemType.Header },
-        ...sortedElements.filter(a => !!a.attributeType).map(a => ({ id: a.controlName, key: a.controlName, text: a.label })),
+        ...sortedElements.filter(a => a.type === "control" && !!a.attributeType).map(a => ({ id: a.controlName, key: a.controlName, text: a.label })),
         { key: 'subgridsHeader', text: 'Subgrid Controls', itemType: DropdownMenuItemType.Header },
-        ...sortedElements.filter(a => a.controlType === "subgrid").map(a => ({ id: a.controlName, key: a.controlName, text: a.label })),
+        ...sortedElements.filter(a => a.type === "control" && a.controlType === "subgrid").map(a => ({ id: a.controlName, key: a.controlName, text: a.label })),
         { key: 'tabsHeader', text: 'Tabs', itemType: DropdownMenuItemType.Header },
-        ...sortedTabs.map(a => ({ id: a.name, key: a.name, text: a.label ?? a.name })),
+        ...sortedElements.filter(a => a.type === "tab").map(a => ({ id: a.controlName, key: a.controlName, text: a.label ?? a.controlName })),
         { key: 'sectionsHeader', text: 'Sections', itemType: DropdownMenuItemType.Header },
-        ...sortedSections.map(a => ({ id: a.name, key: a.name, text: a.label ?? a.name }))
+        ...sortedElements.filter(a => a.type === "section").map(a => ({ id: a.controlName, key: a.controlName, text: a.label ?? a.controlName }))
       ];
 
     const onChangeName = React.useCallback(
@@ -116,17 +115,15 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
         const action = test.actions[index] as TestAssertion;
         action.name = option.id;
 
-        const element = formState.pageElements.find(e => e.controlName === option.id)
-            ?? formState.tabs.find(t => t.name === option.id)
-            ?? formState.sections.find(s => s.name === option.id);
+        const element = formState.controlStates.find(e => e.controlName === option.id);
 
-        action.attributeType = (element as any).attributeType;
-        action.attributeName = (element as any).logicalName;
+        action.attributeType = element.attributeType;
+        action.attributeName = element.logicalName;
 
         action.assertions = {
-            expectedDisableState: { type: (element as any).disabled ? "disabled" : "enabled" },
-            expectedFieldLevel: { type: (element as any).requiredLevel ?? "noop" },
-            expectedValue: { type: "value", value: (element as any).value },
+            expectedDisableState: { type: element.disabled ? "disabled" : "enabled" },
+            expectedFieldLevel: { type: element.requiredLevel ?? "noop" },
+            expectedValue: { type: "value", value: element.value },
             expectedVisibility: { type: element.visible ? "visible" : "hidden" }
         } as AssertionDefinition;
 
@@ -317,7 +314,7 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                                     selectedKey={c.name}
                                     options={options}
                                 />
-                                { c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) &&
+                                { c.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType) &&
                                     <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
                                         <Dropdown
                                             label="Assert Value"
@@ -334,7 +331,7 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                                         { c.assertions.expectedValue?.type === "value" && <TextField styles={{ root: { width: "100%", marginLeft: "5px"}}} label="Value" disabled value={c.assertions.expectedValue?.value} /> }
                                     </div>
                                 }
-                                { /* Remove the 'some' condition later once tabs and sections are implemented */ c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) && <Dropdown
+                                { /* Remove the 'some' condition later once tabs and sections are implemented */ c.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType) && <Dropdown
                                     label="Assert visibility"
                                     onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedVisibility?.active} onChange={(e, v) => onUpdateVisibilityAssertionActive(i, v)} />)}
                                     selectedKey={c.assertions.expectedVisibility?.type ?? "noop"}
@@ -345,7 +342,7 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                                         { text: "Hidden", id: "hidden", key: "hidden" }
                                     ]}
                                 /> }
-                                { c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) && <Dropdown
+                                { c.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType) && <Dropdown
                                     label="Assert disable state"
                                     onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedDisableState?.active} onChange={(e, v) => onUpdateDisableStateAssertionActive(i, v)} />)}
                                     selectedKey={c.assertions.expectedDisableState?.type ?? "noop"}
@@ -356,7 +353,7 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                                         { text: "Enabled", id: "enabled", key: "enabled" },
                                     ]}
                                 /> }
-                                { c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) && <Dropdown
+                                { c.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType) && <Dropdown
                                     label="Assert field level"
                                     onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedFieldLevel?.active} onChange={(e, v) => onUpdateFieldLevelAssertionActive(i, v)} />)}
                                     selectedKey={c.assertions.expectedFieldLevel?.type ?? "noop"}

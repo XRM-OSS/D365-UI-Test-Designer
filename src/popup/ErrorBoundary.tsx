@@ -6,14 +6,15 @@ import { IIconProps } from "@fluentui/react/lib/Icon";
 import { ContextualMenu } from "@fluentui/react/lib/ContextualMenu";
 import { mergeStyleSets, getTheme, FontWeights } from "@fluentui/react/lib/Styling";
 import { TestSuite } from "../domain/TestSuite";
-import { setStoredPageState, setStoredTestSuite, defaultPageState, defaultTestSuite } from "../domain/Storage";
+import { setStoredPageState, setStoredTestSuite, defaultPageState, defaultTestSuite, getStoredTestSuite } from "../domain/Storage";
 
 interface ErrorBoundaryState {
-    error: Error;
+    error?: Error;
+    suite?: TestSuite;
 }
 
 interface ErrorBoundaryProps {
-    testSuite: TestSuite;
+
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -23,6 +24,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     this.state = {
         error: undefined 
     };
+  }
+
+  async componentDidMount() {
+    const suite = await getStoredTestSuite();
+    this.setState({ suite });
   }
 
   static getDerivedStateFromError(error: any) {
@@ -92,7 +98,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                     <p>There was probably a problem with rendering your test definition. Please open an issue on our GitHub repo and provide below information (The test suite data contains your test definition including values that will be set, please remove any sensitive information) <a href="https://github.com/XRM-OSS/D365-UI-Test-Designer/issues">here</a></p>
                     <p>{this.state.error.message}</p>
                     <p>{this.state.error.stack}</p>
-                    <p>You might want to back this up. Resetting will delete it: {JSON.stringify(this.props.testSuite)}</p>
+                    <p>You might want to back this up. Resetting will delete it: {JSON.stringify(this.state.suite)}</p>
                     <DefaultButton onClick={this.resetError}>Reset test suite</DefaultButton>
                 </div>
             </Modal>

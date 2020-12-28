@@ -6,8 +6,9 @@ export const defaultPageState: PageState = {
 };
 
 export const defaultTestSuite: TestSuite = {
-    tests: []
-}
+    tests: [],
+    metadata: {}
+};
 
 export const getStoredPageState = (): Promise<PageState> => {
     return new Promise((resolve, reject) => {
