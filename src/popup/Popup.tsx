@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { PageState } from "../domain/PageState";
 import { IContextualMenuProps } from "@fluentui/react/lib/ContextualMenu";
 import { swapPositions } from "../domain/SwapPositions";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const sendMessage = (payload: CommunicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
@@ -201,17 +202,19 @@ export const PopUp: React.FC<any> = () => {
 
     return (
         <div style={{width: "760px", height: "600px"}}>
-            <OverflowSet
-                role="menubar"
-                styles={{root: {backgroundColor: "#f8f9fa", position: "sticky", top: "0px", zIndex: 1, padding: "5px" }}}
-                onRenderItem={onRenderItem}
-                onRenderOverflowButton={onRenderOverflowButton}
-                items={navItems.filter(i => !!i)}
-            />
-            <div style={{padding: "5px"}}>
-                { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
-                { activeTab === "#export" && <ExportView state={testSuite}></ExportView> }
-            </div>
+            <ErrorBoundary testSuite={testSuite}>
+                <OverflowSet
+                    role="menubar"
+                    styles={{root: {backgroundColor: "#f8f9fa", position: "sticky", top: "0px", zIndex: 1, padding: "5px" }}}
+                    onRenderItem={onRenderItem}
+                    onRenderOverflowButton={onRenderOverflowButton}
+                    items={navItems.filter(i => !!i)}
+                />
+                <div style={{padding: "5px"}}>
+                    { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
+                    { activeTab === "#export" && <ExportView state={testSuite}></ExportView> }
+                </div>
+            </ErrorBoundary>
         </div>
     );
 }

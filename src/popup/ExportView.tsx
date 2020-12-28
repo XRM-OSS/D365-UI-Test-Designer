@@ -1,6 +1,10 @@
 import * as React from "react";
 import { TestAction, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
+import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
+import { TextField } from "@fluentui/react/lib/TextField";
+import { Button, DefaultButton, PrimaryButton } from "@fluentui/react/lib/Button";
+import { setStoredTestSuite } from "../domain/Storage";
 
 export interface ExportViewProps {
     state: TestSuite
@@ -26,7 +30,7 @@ const generateExpression = (e: TestAction) => {
                     ? `expect((await xrmTest.Attribute.getRequiredLevel("${e.attributeName}"))).toBe("${e.assertions.expectedFieldLevel.type}");`
                     : undefined,
                 (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "value")
-                    ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toBe(${typeof(e.assertions.expectedValue.value) === "string" && e.attributeType !== "lookup" ? `"${e.assertions.expectedValue.value.replace(/"/g, '\\"')}"` : e.assertions.expectedValue.value});`
+                    ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toStrictEqual(${typeof(e.assertions.expectedValue.value) === "string" && e.attributeType !== "lookup" ? `"${e.assertions.expectedValue.value.replace(/"/g, '\\"')}"` : e.assertions.expectedValue.value});`
                     : undefined,
                 (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "null")
                     ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toBeNull();`
@@ -41,7 +45,14 @@ const generateExpression = (e: TestAction) => {
 }
 
 export const ExportView: React.FC<ExportViewProps> = ({state}) => {
-    const value = `
+    const [importText, setImportText] = React.useState("");
+
+    const importTest = async (json: string) => {
+        await setStoredTestSuite(JSON.parse(json));
+        setImportText("");
+    }
+
+    const exportValue = `
     import { XrmUiTest } from "d365-ui-test";
     import * as fs from "fs";
     import * as playwright from "playwright";
@@ -102,6 +113,20 @@ ${state.tests.filter(t => !!t).map(t => {
     `;
 
     return (
-        <textarea style={{width: "100%", height: "100%"}} value={value} />
+        <Pivot aria-label="Import/Export">
+            <PivotItem
+                headerText="Export"
+                headerButtonProps={{
+                    "data-order": 1,
+                    "data-title": "Export",
+                }}
+            >
+                <TextField rows={30} multiline value={exportValue} />
+            </PivotItem>
+            <PivotItem headerText="Import">
+                <TextField rows={30} style={{width: "100%", height: "100%"}} onChange={(e, v) => setImportText(v)} multiline value={importText} />
+                <PrimaryButton label="Import" onClick={() => importTest(importText)}>Import</PrimaryButton>
+            </PivotItem>
+      </Pivot>
     );
 }

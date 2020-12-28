@@ -297,6 +297,8 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                         { text: "None", id: "none", key: "none" },
                         { text: "New Record", id: "new", key: "new" },
                         { text: "Existing Record", id: "existing", key: "existing" },
+                        { text: "Click lookup", id: "lookup", key: "lookup" },
+                        { text: "Open Subgrid Record", id: "subgrid", key: "subgrid" }
                     ]}
                 />
                 { test.preTestNavigation && test.preTestNavigation.recordId && <Text>{test.preTestNavigation.recordId}</Text>}
@@ -332,7 +334,7 @@ export const TestView: React.FC<TestViewProps> = ({test, formState, updateTest, 
                                         { c.assertions.expectedValue?.type === "value" && <TextField styles={{ root: { width: "100%", marginLeft: "5px"}}} label="Value" disabled value={c.assertions.expectedValue?.value} /> }
                                     </div>
                                 }
-                                { c.name && <Dropdown
+                                { /* Remove the 'some' condition later once tabs and sections are implemented */ c.name && formState?.pageElements?.some(e => e.controlName === c.name && !!e.attributeType) && <Dropdown
                                     label="Assert visibility"
                                     onRenderLabel={(props) => renderAssertionLabel(props, <Checkbox checked={c.assertions?.expectedVisibility?.active} onChange={(e, v) => onUpdateVisibilityAssertionActive(i, v)} />)}
                                     selectedKey={c.assertions.expectedVisibility?.type ?? "noop"}

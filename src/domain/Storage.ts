@@ -1,11 +1,11 @@
 import { PageState } from "./PageState";
 import { TestSuite } from "./TestSuite";
 
-const defaultPageState: PageState = {
+export const defaultPageState: PageState = {
     recordingToTest: ""
 };
 
-const defaultTestSuite: TestSuite = {
+export const defaultTestSuite: TestSuite = {
     tests: []
 }
 
