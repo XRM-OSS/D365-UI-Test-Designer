@@ -9,5 +9,8 @@ D365-UI-Test can be found here: https://github.com/XRM-OSS/D365-UI-Test
 There you can also find a reference to sample UI Test project, which you can use as base for pasting and running the exported auto generated UI Tests.
 
 # Impressions
-![Bildschirmfoto vom 2020-12-28 02-02-56](https://user-images.githubusercontent.com/4287938/103183508-3924f000-48b3-11eb-9049-314f91bf552c.png)
+## Capture and design tests
 ![Bildschirmfoto von 2020-12-28 02-07-38](https://user-images.githubusercontent.com/4287938/103183510-3a561d00-48b3-11eb-804c-de174f8858ad.png)
+
+## Export functional D365-UI-Test scripts
+![Bildschirmfoto vom 2020-12-28 02-02-56](https://user-images.githubusercontent.com/4287938/103183508-3924f000-48b3-11eb-9049-314f91bf552c.png)
