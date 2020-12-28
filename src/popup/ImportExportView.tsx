@@ -7,7 +7,8 @@ import { Button, DefaultButton, PrimaryButton } from "@fluentui/react/lib/Button
 import { setStoredTestSuite } from "../domain/Storage";
 
 export interface ExportViewProps {
-    state: TestSuite
+    state: TestSuite;
+    importTestSuite: (suite: TestSuite) => void;
 }
 
 const generateExpression = (e: TestAction) => {
@@ -44,12 +45,17 @@ const generateExpression = (e: TestAction) => {
     }
 }
 
-export const ExportView: React.FC<ExportViewProps> = ({state}) => {
+export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) => {
     const [importText, setImportText] = React.useState("");
 
-    const importTest = async (json: string) => {
-        await setStoredTestSuite(JSON.parse(json));
-        setImportText("");
+    const triggerImport = () => {
+        try {
+            importTestSuite(JSON.parse(importText));
+            setImportText("");
+        }
+        catch(e) {
+
+        }
     }
 
     const exportValue = `
@@ -121,11 +127,11 @@ ${state.tests.filter(t => !!t).map(t => {
                     "data-title": "Export",
                 }}
             >
-                <TextField rows={30} multiline value={exportValue} />
+                <TextField rows={25} multiline value={exportValue} />
             </PivotItem>
             <PivotItem headerText="Import">
-                <TextField rows={30} style={{width: "100%", height: "100%"}} onChange={(e, v) => setImportText(v)} multiline value={importText} />
-                <PrimaryButton label="Import" onClick={() => importTest(importText)}>Import</PrimaryButton>
+                <TextField rows={25} style={{width: "100%", height: "100%"}} onChange={(e, v) => setImportText(v)} multiline value={importText} />
+                <PrimaryButton label="Import" onClick={triggerImport}>Import</PrimaryButton>
             </PivotItem>
       </Pivot>
     );

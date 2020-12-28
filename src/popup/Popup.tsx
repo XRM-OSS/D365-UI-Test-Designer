@@ -2,8 +2,8 @@ import * as React from "react";
 import { TestDefinition, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { CaptureView } from "./CaptureView";
-import { ExportView } from "./ExportView";
-import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite } from "../domain/Storage";
+import { ExportView } from "./ImportExportView";
+import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite, defaultTestSuite } from "../domain/Storage";
 import { IOverflowSetItemProps, OverflowSet } from "@fluentui/react/lib/OverflowSet";
 import { CommandBarButton, DefaultButton, IButtonStyles, IconButton } from "@fluentui/react/lib/Button";
 import { v4 as uuidv4 } from "uuid";
@@ -108,7 +108,7 @@ export const PopUp: React.FC<any> = () => {
 
     const clear = () => {
         stopRecording();
-        persistTestSuite({});
+        persistTestSuite(defaultTestSuite);
     }
 
     const menuProps: IContextualMenuProps = {
@@ -124,8 +124,8 @@ export const PopUp: React.FC<any> = () => {
             onClick: () => setActiveTab("#capture"),
         },
         {
-            key: "export",
-            name: "Export",
+            key: "importExport",
+            name: "Import / Export",
             icon: "CloudImportExport",
             onClick: () => setActiveTab("#export"),
         },
@@ -212,7 +212,7 @@ export const PopUp: React.FC<any> = () => {
                 />
                 <div style={{padding: "5px"}}>
                     { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
-                    { activeTab === "#export" && <ExportView state={testSuite}></ExportView> }
+                    { activeTab === "#export" && <ExportView importTestSuite={persistTestSuite} state={testSuite}></ExportView> }
                 </div>
             </ErrorBoundary>
         </div>
