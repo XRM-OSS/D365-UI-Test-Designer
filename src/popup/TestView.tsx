@@ -115,16 +115,18 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
         const action = test.actions[index] as TestAssertion;
         action.name = option.id;
 
-        const element = formState.controlStates.find(e => e.controlName === option.id);
+        const control = suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.controlName === option.id);
 
-        action.attributeType = element.attributeType;
-        action.attributeName = element.logicalName;
+        action.attributeType = control?.type === "control" ? control?.attributeType : undefined;
+        action.attributeName = control?.type === "control" ? control?.logicalName : undefined;
+
+        const element = formState?.controlStates?.find(e => e.controlName === option.id);
 
         action.assertions = {
-            expectedDisableState: { type: element.disabled ? "disabled" : "enabled" },
-            expectedFieldLevel: { type: element.requiredLevel ?? "noop" },
-            expectedValue: { type: "value", value: element.value },
-            expectedVisibility: { type: element.visible ? "visible" : "hidden" }
+            expectedDisableState: { type: element?.disabled ? "disabled" : "enabled" },
+            expectedFieldLevel: { type: element?.requiredLevel ?? "noop" },
+            expectedValue: { type: "value", value: element?.value },
+            expectedVisibility: { type: element?.visible ? "visible" : "hidden" }
         } as AssertionDefinition;
 
         updateTest(test.id, test);
