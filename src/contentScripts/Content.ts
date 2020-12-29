@@ -48,15 +48,15 @@ class PageLogic
         });
     };
 
-    private handlers: {[key: string]: (data?: any) => any} = {
+    private handlers: {[key: string]: (data?: any) => [ boolean, any ]} = {
         "getFormState": () => {
             var xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
-                return;
+                return [false, undefined];
             }
 
-            return {
+            return [ true, {
                 entity: xrm.Page.data.entity.getEntityName(),
                 recordId: xrm.Page.data.entity.getId(),
                 controlStates: xrm.Page.getControl().map(c => {
@@ -75,16 +75,16 @@ class PageLogic
                 })
                 .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel(), visible: t.getVisible()})))
                 .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())})))
-            } as FormState;
+            } as FormState];
         },
         "getEntityMetadata": () => {
             var xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
-                return;
+                return [false, undefined];
             }
 
-            return {
+            return [ true, {
                 logicalName: xrm.Page.data.entity.getEntityName(),
                 controls: xrm.Page.getControl().map(c => {
                     const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
@@ -100,31 +100,31 @@ class PageLogic
                 })
                 .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel()})))
                 .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), label: s.getLabel() })))
-            } as EntityMetadata;
+            } as EntityMetadata];
         },
         "startRecording": (testId: string) => {
             var xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
-                return;
+                return [false, undefined];
             }
 
             xrm.Page.getAttribute().forEach(a => a.addOnChange(this.attributeOnChange));
             xrm.Page.data.entity.addOnSave(this.onSave);
 
-            return testId;
+            return [ true, testId];
         },
         "stopRecording": () => {
             var xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
-                return;
+                return [false, undefined];
             }
 
             xrm.Page.getAttribute().forEach(a => a.removeOnChange(this.attributeOnChange));
             xrm.Page.data.entity.removeOnSave(this.onSave);
 
-            return true;
+            return [true, true];
         }
     };
 
@@ -142,8 +142,8 @@ class PageLogic
                 this.sendMessage({ recipient: "popup", operation: operation, success: false, data: "Operation not found" });
             }
 
-            const data = this.handlers[operation](message.data);
-            this.sendMessage({ recipient: "popup", operation: operation, success: true, data: data });
+            const [success, data] = this.handlers[operation](message.data);
+            this.sendMessage({ recipient: "popup", operation: operation, success: success, data: data });
         });
     }
 

@@ -12,31 +12,37 @@ const processMessageToPopUp = async (request: CommunicationResponse) => {
     const pageState = await getStoredPageState();
     const testSuite = await getStoredTestSuite();
 
+    if (!request.success) {
+        return;
+    }
+
     switch (request.operation) {
         case "startRecording":
             // This will set the test to which we currently record
             pageState.recordingToTest = request.data;
+            await setStoredPageState(pageState);
             break;
         case "stopRecording": 
-            if (request.success) {
-                pageState.recordingToTest = undefined;
-            }
+            pageState.recordingToTest = undefined;
+            await setStoredPageState(pageState);
             break;
         case "getFormState":
             pageState.formState = request.data;
+            await setStoredPageState(pageState);
             break;
         case "getEntityMetadata":
             const payload = request.data as EntityMetadata;
-            testSuite.metadata[payload.logicalName] = payload;
+            if (payload) {
+                testSuite.metadata[payload.logicalName] = payload;
+                await setStoredTestSuite(testSuite);
+            }
             break;
         case "formEvent":
             const activeTest = testSuite.tests.find(t => t.id === pageState.recordingToTest);
             activeTest && activeTest.actions.push(request.data);
+            await setStoredTestSuite(testSuite);
             break;
     }
-
-    await setStoredPageState(pageState);
-    await setStoredTestSuite(testSuite);
 
     console.log("Backend script received message for popup: " + JSON.stringify(request));
     chrome.runtime.sendMessage("ping");
