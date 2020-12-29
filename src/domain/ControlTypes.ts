@@ -13,8 +13,13 @@ export interface StandardControl extends BaseControl {
     attributeType?: Xrm.Attributes.AttributeType;
 }
 
-export interface ContainerControl extends BaseControl {
-    type: "tab" | "section";
+export interface TabControl extends BaseControl {
+    type: "tab";
 }
 
-export type EntityControl = StandardControl | ContainerControl;
+export interface SectionControl extends BaseControl {
+    type: "section";
+    tabName: string;
+}
+
+export type EntityControl = StandardControl | TabControl | SectionControl;

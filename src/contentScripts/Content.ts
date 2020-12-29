@@ -1,7 +1,7 @@
 import { ControlState, FormState } from "../domain/PageState";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { EntityMetadata } from "../domain/TestSuite";
-import { EntityControl } from "../domain/ControlTypes";
+import { EntityControl, SectionControl, TabControl } from "../domain/ControlTypes";
 
 class PageLogic
 {
@@ -74,7 +74,7 @@ class PageLogic
                     } as ControlState;
                 })
                 .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel(), visible: t.getVisible()})))
-                .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())})))
+                .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map((s: Xrm.Controls.Section) => ({ type: "section", controlName: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())} as ControlState)))
             } as FormState];
         },
         "getEntityMetadata": () => {
@@ -98,8 +98,8 @@ class PageLogic
                         attributeType: attribute?.getAttributeType()
                     } as EntityControl;
                 })
-                .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel()})))
-                .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), label: s.getLabel() })))
+                .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel()} as TabControl)))
+                .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), tabName: s.getParent() && s.getParent().getName(), label: s.getLabel() } as SectionControl)))
             } as EntityMetadata];
         },
         "startRecording": (testId: string) => {
