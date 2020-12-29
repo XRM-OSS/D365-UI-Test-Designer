@@ -69,6 +69,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             return;
         }
 
+        if (!changeInfo.url) {
+            return;
+        }
+
         const state = await getStoredPageState();
         state.recordingToTest = undefined;
         state.formState = undefined;
