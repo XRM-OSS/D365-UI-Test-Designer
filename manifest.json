@@ -27,8 +27,7 @@
         "content.js"
     ],
     "permissions": [
-        "activeTab",
-        "tabs",
-        "storage"
+        "storage",
+        "activeTab"
     ]
 }

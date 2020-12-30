@@ -29,7 +29,8 @@ class PageLogic
             recipient: "popup",
             success: true,
             data: {
-                name: name,
+                name: eventSource.controls.get(0).getName(),
+                logicalName: name,
                 event: "setValue",
                 attributeType: type,
                 value: type === "lookup" ? JSON.stringify(value) : value

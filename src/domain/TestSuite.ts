@@ -2,8 +2,9 @@ import { EntityControl } from "./ControlTypes";
 
 export interface FormAction {
     event: "setValue" | "save";
-    attributeType?: string;
+    attributeType?: Xrm.Attributes.AttributeType;
     name: string;
+    logicalName: string;
     value?: any;
 }
 
@@ -17,7 +18,9 @@ export interface AssertionDefinition {
 
 export interface TestTimeout {
     event: "timeout";
-    duration: number;
+    type: "duration" | "selector";
+    duration?: number;
+    selector?: string;
 }
 
 export interface TestAssertion {
@@ -25,7 +28,7 @@ export interface TestAssertion {
     name?: string;
     attributeName?: string;
     assertions: AssertionDefinition;
-    attributeType?: string;
+    attributeType?: Xrm.Attributes.AttributeType;
 }
 
 export type TestAction = FormAction | TestAssertion | TestTimeout;
