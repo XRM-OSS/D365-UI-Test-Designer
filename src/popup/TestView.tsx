@@ -134,7 +134,7 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
 
     const onUpdateActionValue = (index: number, value: string) => {
         const action = test.actions[index] as FormAction;
-        action.value = value;
+        action.value = typeof(value) === "string" && value === "" ? null : value;
 
         updateTest(test.id, test);
     }
@@ -169,7 +169,7 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
 
     const onUpdateAssertionValue = (index: number, value: any) => {
         const action = test.actions[index] as TestAssertion;
-        action.assertions.expectedValue = {...(action.assertions.expectedValue ?? { type: "noop" }), value: value };
+        action.assertions.expectedValue = {...(action.assertions.expectedValue ?? { type: "noop" }), value: typeof(value) === "string" && value === "" ? null : value };
 
         updateTest(test.id, test);
     }
@@ -243,15 +243,6 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
 
         updateTest(test.id, test);
     }
-
-    const renderAssertionLabel = (props: IDropdownProps, prefix: JSX.Element): JSX.Element => {
-        return (
-            <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
-                {prefix}
-                <Label>{props.label}</Label>
-            </div>
-        );
-      };
 
     const cardTokens: ICardTokens = {
         childrenGap: "10px",

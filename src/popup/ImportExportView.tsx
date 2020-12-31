@@ -122,7 +122,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
             jest.setTimeout(60000);
     
             await xrmTest.launch("chromium", {
-                headless: false,
+                headless: !!process.env.D365_UI_TEST_HEADLESS,
                 args: [
                     '--disable-setuid-sandbox',
                     '--disable-infobars',
@@ -142,7 +142,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
         test("Start D365", async () => {
             const settingsPath = path.join(__dirname, "../../settings.txt");
             const settingsFound = fs.existsSync(settingsPath);
-            const config = settingsFound ? fs.readFileSync(settingsPath, {encoding: 'utf-8'}) : ${'`${process.env.CRM_URL ?? ""},${process.env.USER_NAME ?? ""},${process.env.USER_PASSWORD ?? ""},${process.env.MFA_SECRET ?? ""}`'};
+            const config = settingsFound ? fs.readFileSync(settingsPath, {encoding: 'utf-8'}) : ${'`${process.env.D365_UI_TEST_URL ?? process.env.CRM_URL ?? ""},${process.env.D365_UI_TEST_USERNAME ?? process.env.USER_NAME ?? ""},${process.env.D365_UI_TEST_PASSWORD ?? process.env.USER_PASSWORD ?? ""},${process.env.D365_UI_TEST_MFA_SECRET ?? process.env.MFA_SECRET ?? ""}`'};
             const [url, user, password, mfaSecret] = config.split(",");
     
             await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
@@ -177,7 +177,7 @@ ${state.tests.filter(t => !!t).map(t => {
                     "data-title": "Export",
                 }}
             >
-                <TextField rows={25} multiline value={exportValue} />
+                <TextField rows={25} multiline readOnly value={exportValue} />
             </PivotItem>
             <PivotItem headerText="Import">
                 <TextField rows={25} style={{width: "100%", height: "100%"}} onChange={(e, v) => setImportText(v)} multiline value={importText} />

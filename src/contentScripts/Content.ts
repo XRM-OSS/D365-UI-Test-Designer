@@ -18,35 +18,56 @@ class PageLogic
     }
 
     private attributeOnChange = (context: Xrm.Events.EventContext) => {
-        const eventSource = (context.getEventSource() as Xrm.Attributes.Attribute)
-        
-        const name = eventSource.getName();
-        const value = eventSource.getValue();
-        const type = eventSource.getAttributeType();
+        try {
+            const eventSource = (context.getEventSource() as Xrm.Attributes.Attribute)
+            const name = eventSource?.getName();
 
-        this.sendMessage({
-            operation: "formEvent",
-            recipient: "popup",
-            success: true,
-            data: {
-                name: eventSource.controls.get(0).getName(),
-                logicalName: name,
-                event: "setValue",
-                attributeType: type,
-                value: type === "lookup" ? JSON.stringify(value) : value
+            if (!name) {
+                return;
             }
-        });
+
+            const value = eventSource.getValue();
+            const type = eventSource.getAttributeType();
+
+            this.sendMessage({
+                operation: "formEvent",
+                recipient: "popup",
+                success: true,
+                data: {
+                    name: eventSource.controls.get(0)?.getName() ?? name,
+                    logicalName: name,
+                    event: "setValue",
+                    attributeType: type,
+                    value: type === "lookup" ? JSON.stringify(value) : value
+                }
+            });
+        }
+        catch (e) {
+            console.error(e?.message);
+        }
     };
 
-    private onSave = () => {
-        this.sendMessage({
-            operation: "formEvent",
-            recipient: "popup",
-            success: true,
-            data: {
-                event: "save"
+    private onSave = (context: Xrm.Events.SaveEventContext) => {
+        try {
+            const eventArgs = context.getEventArgs();
+
+            // We don't want to capture auto save events
+            if (eventArgs.getSaveMode() == 70) {
+                return;
             }
-        });
+
+            this.sendMessage({
+                operation: "formEvent",
+                recipient: "popup",
+                success: true,
+                data: {
+                    event: "save"
+                }
+            });
+        }
+        catch (e) {
+            console.error(e?.message);
+        }
     };
 
     private handlers: {[key: string]: (data?: any) => [ boolean, any ]} = {
