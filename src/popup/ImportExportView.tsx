@@ -119,7 +119,8 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
     
     describe("Basic operations UCI", () => {
         beforeAll(async() => {
-            jest.setTimeout(60000);
+            // Every test may take 2 minutes at max
+            jest.setTimeout(120000);
     
             await xrmTest.launch("chromium", {
                 headless: !!process.env.D365_UI_TEST_HEADLESS,
