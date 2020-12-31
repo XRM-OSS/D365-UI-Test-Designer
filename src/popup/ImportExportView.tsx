@@ -155,7 +155,7 @@ ${state.tests.filter(t => !!t).map(t => {
         ...(t.actions || [])
             .reduce((all, cur) => [...all, ...generateExpression(cur, state.metadata[t.entityLogicalName])], []),
         "});"
-    ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t" : "\t\t"}${l}`).join("\n");
+    ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
 }).join("\n\n")}
     
         afterAll(() => {
