@@ -223,7 +223,7 @@ export const PopUp: React.FC<any> = () => {
     };
 
     return (
-        <div style={{width: "760px", height: "600px"}}>
+        <div>
             <Dialog
                 hidden={entitySelectorHidden}
                 onDismiss={() => setEntitySelectorHidden(true)}

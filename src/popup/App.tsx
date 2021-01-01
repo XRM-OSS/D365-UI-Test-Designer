@@ -4,8 +4,10 @@ import { PopUp } from "./Popup";
 
 export const App: React.FC<any> = () => {
     return (
-        <ErrorBoundary>
-            <PopUp />
-        </ErrorBoundary>
+        <div style={{width: "760px", height: "600px"}}>
+            <ErrorBoundary>
+                <PopUp />
+            </ErrorBoundary>
+        </div>
     );
 }

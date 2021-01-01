@@ -95,7 +95,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                     <span id={titleid}>An error occured</span>
                 </div>
                 <div className={contentStyles.body}>
-                    <p>There was probably a problem with rendering your test definition. Please open an issue on our GitHub repo and provide below information (The test suite data contains your test definition including values that will be set, please remove any sensitive information) <a href="https://github.com/XRM-OSS/D365-UI-Test-Designer/issues">here</a></p>
+                    <p>There was probably a problem with rendering your test definition. Please open an issue on our GitHub repo and provide below information <a href="https://github.com/XRM-OSS/D365-UI-Test-Designer/issues">here</a> (The test suite data contains your test definition including values that will be set, please remove any sensitive information)</p>
                     <p>{this.state.error.message}</p>
                     <p>{this.state.error.stack}</p>
                     <p>You might want to back this up. Resetting will delete it: {JSON.stringify(this.state.suite)}</p>
