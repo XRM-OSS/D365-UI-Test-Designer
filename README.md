@@ -14,7 +14,7 @@ Get the extension from the official browser stores.
 ## MS Edge
 https://microsoftedge.microsoft.com/addons/detail/d365uitestdesigner/mkppkindconajlokeapdjcbhacdgodif
 
-##Chrome
+## Chrome
 https://chrome.google.com/webstore/detail/d365-ui-test-designer/lfcoehhlodiaehjepemaogbgadfoipog?hl=de&authuser=0
 
 Download and bootstrap the Jest Demo repository: https://github.com/XRM-OSS/D365-UI-Test-Jest-Demo
