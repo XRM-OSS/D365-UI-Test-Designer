@@ -12,7 +12,7 @@ module.exports = {
         path: __dirname + "/dist"
     },
 
-    mode: "development",
+    mode: "production",
 
     // Enable sourcemaps for debugging webpack's output.
     devtool: 'inline-source-map',
