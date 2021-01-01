@@ -39,12 +39,12 @@ const generatePreTestNavigationExpression = (test: TestDefinition, metadata: Ent
         case "lookup":
             return [
                 `expect((await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}"))).not.toBeNull();`,
-                `await xrmTest.Navigation.openUpdateForm((await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}")[0].entityType), (await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}")[0].id));`
+                `await xrmTest.Navigation.openUpdateForm((await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}"))[0].entityType, (await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}"))[0].id);`
             ];
         case "subgrid":
             return [
-                `expect((await xrmUiTest.Subgrid.getRecordCount("${test.preTestNavigation.subgridName}"))).toBeGreaterThanOrEqual(${test.preTestNavigation.recordPosition} + 1);`,
-                `await xrmUiTest.Subgrid.openNthRecord("${test.preTestNavigation.subgridName}", ${test.preTestNavigation.recordPosition});`
+                `expect((await xrmTest.SubGrid.getRecordCount("${test.preTestNavigation.subgridName}"))).toBeGreaterThanOrEqual(${test.preTestNavigation.recordPosition} + 1);`,
+                `await xrmTest.SubGrid.openNthRecord("${test.preTestNavigation.subgridName}", ${test.preTestNavigation.recordPosition});`
             ];
         default:
             return [undefined];
