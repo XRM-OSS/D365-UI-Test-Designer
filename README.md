@@ -17,6 +17,7 @@ https://microsoftedge.microsoft.com/addons/detail/d365uitestdesigner/mkppkindcon
 ## Chrome
 https://chrome.google.com/webstore/detail/d365-ui-test-designer/lfcoehhlodiaehjepemaogbgadfoipog?hl=de&authuser=0
 
+## Execute tests
 Download and bootstrap the Jest Demo repository: https://github.com/XRM-OSS/D365-UI-Test-Jest-Demo
 > Inside the ReadMe of the Jest Demo, there are instructions on how to get started. Don't forget to create the settings.txt file one folder above your repo with the D365 credentials
 
