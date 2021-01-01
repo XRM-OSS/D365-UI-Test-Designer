@@ -356,7 +356,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         switch (action.event) {
             case "setValue":
                 return [
-                    <div key={1} style={{display: "flex", flexDirection: "row", overflow: "hidden", paddingBottom: "5px", paddingTop: "5px"}}>
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
                         <Dropdown
                             styles={{root: { flex: "1", marginLeft: "5px", width: "200px" }}}
@@ -370,12 +370,12 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 ];
             case "assertion":
                 return [
-                    <div key={1} style={{display: "flex", flexDirection: "row", overflow: "hidden", paddingBottom: "5px", paddingTop: "5px"}}>
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
                         <Dropdown
                             onChange={(e, v) => onUpdateAssertionName(i, v)}
                             selectedKey={action.name}
-                            styles={{root: { paddingLeft: "5px", flex: "1" }}}
+                            styles={{root: { flex: "1", marginLeft: "5px", width: "200px" }}}
                             options={options}
                         />
                         { buttons }
@@ -446,7 +446,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 ];
             case "save":
                 return [
-                    <div key={1} style={{display: "flex", flexDirection: "row", overflow: "hidden", paddingBottom: "5px", paddingTop: "5px"}}>
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
                         <Text styles={{root: { flex: "1", paddingTop: "5px", paddingLeft: "5px" }}}>Form save</Text>
                         { buttons }
@@ -454,7 +454,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 ];
             case "timeout":
                 return [
-                    <div key={1} style={{display: "flex", flexDirection: "row", overflow: "hidden", paddingBottom: "5px", paddingTop: "5px"}}>
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
                         <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}}>Timeout duration (ms)</Text>
                         <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateTimeoutDuration(i, v)} value={action.duration?.toString()} />
@@ -463,7 +463,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 ];
             default:
                 return [
-                    <div key={1} style={{display: "flex", flexDirection: "row", overflow: "hidden", paddingBottom: "5px", paddingTop: "5px"}}>
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{(action as any).event}</Text>
                         { buttons }
                     </div>
@@ -515,13 +515,14 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         <Dropdown
                             onChange={onInitializationActionSubgridSelection}
                             selectedKey={test.preTestNavigation.subgridName}
+                            styles={{root: {flex: "1"}}}
                             options={!previousSortedElements ? [] : [
                                 { key: 'subgridsHeader', text: 'Subgrid Controls', itemType: DropdownMenuItemType.Header },
                                 ...previousSortedElements.filter(a => a.type === "control" && a.controlType === "subgrid").map(a => ({ id: a.controlName, key: a.controlName, text: `${a.label} (${a.controlName})` }))
                             ]}
                         />
                         <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}} className={classNames.eventText}>Position</Text>
-                        <TextField styles={{root: {paddingLeft: "5px"}}} placeholder="Enter record position (zero based)" value={test.preTestNavigation.recordPosition?.toString() ?? ""} onChange={onInitializationActionSubgridPositionChange} />
+                        <TextField styles={{root: {paddingLeft: "5px", flex: "1"}}} placeholder="Enter record position (zero based)" value={test.preTestNavigation.recordPosition?.toString() ?? ""} onChange={onInitializationActionSubgridPositionChange} />
                     </div>
                 }
                 { test.preTestNavigation && test.preTestNavigation.type === "existing" && <TextField onChange={onInitializationActionRecordIdChange} value={test.preTestNavigation.recordId} />}
@@ -532,7 +533,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                     { 
                         test.actions?.map((c, i) => {
                             const buttons = (
-                                <div style={{flex: "1"}}>
+                                <div>
                                     <IconButton onClick={() => onMoveActionUp(i)} iconProps={{iconName: "ChevronUp"}} />
                                     <IconButton onClick={() => onMoveActionDown(i)} iconProps={{iconName: "ChevronDown"}} />
                                     <IconButton onClick={() => onDeleteAction(i)} iconProps={{iconName: "Delete"}} />
