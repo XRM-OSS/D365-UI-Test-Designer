@@ -9,9 +9,13 @@ D365-UI-Test can be found here: https://github.com/XRM-OSS/D365-UI-Test
 There you can also find a reference to sample UI Test project, which you can use as base for pasting and running the exported auto generated UI Tests.
 
 # Installation
-Get the MS Edge extension from the Store: https://microsoftedge.microsoft.com/addons/detail/d365uitestdesigner/mkppkindconajlokeapdjcbhacdgodif
+Get the extension from the official browser stores.
 
-(Chrome Store is also already submitted)
+## MS Edge
+https://microsoftedge.microsoft.com/addons/detail/d365uitestdesigner/mkppkindconajlokeapdjcbhacdgodif
+
+##Chrome
+https://chrome.google.com/webstore/detail/d365-ui-test-designer/lfcoehhlodiaehjepemaogbgadfoipog?hl=de&authuser=0
 
 Download and bootstrap the Jest Demo repository: https://github.com/XRM-OSS/D365-UI-Test-Jest-Demo
 > Inside the ReadMe of the Jest Demo, there are instructions on how to get started. Don't forget to create the settings.txt file one folder above your repo with the D365 credentials
