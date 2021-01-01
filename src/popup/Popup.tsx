@@ -81,7 +81,7 @@ export const PopUp: React.FC<any> = () => {
     }
 
     const addTest = () => {
-        persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [], entityLogicalName: testEntityLogicalName }])});
+        persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [], entityLogicalName: testEntityLogicalName, preTestNavigation: testSuite && testSuite.tests && testSuite.tests.length ? undefined : { type: "new", entity: testEntityLogicalName } }])});
         setEntitySelectorHidden(true);
     }
 

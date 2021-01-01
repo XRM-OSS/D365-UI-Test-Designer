@@ -33,17 +33,40 @@ export interface TestAssertion {
 
 export type TestAction = FormAction | TestAssertion | TestTimeout;
 
-export interface PreTestNavigation {
-    entity: string;
-    recordId?: string; 
+export interface NoRecordNavigation {
+    type: "noop";
 }
+
+export interface NewRecordNavigation {
+    type: "new";
+    entity: string;
+}
+
+export interface ExistingRecordNavigation {
+    type: "existing";
+    entity: string;
+    recordId: string;
+}
+
+export interface LookupNavigation {
+    type: "lookup";
+    controlName: string;
+    logicalName: string;
+}
+
+export interface SubgridNavigation {
+    type: "subgrid";
+    subgridName: string;
+    recordPosition: number;
+}
+
+export type PreTestNavigation = NoRecordNavigation | NewRecordNavigation | ExistingRecordNavigation | LookupNavigation | SubgridNavigation;
 
 export interface TestDefinition {
     entityLogicalName: string;
     preTestNavigation?: PreTestNavigation;
     name?: string;
     actions?: Array<TestAction>;
-    postTestNavigation?: any;
     id: string;
 }
 

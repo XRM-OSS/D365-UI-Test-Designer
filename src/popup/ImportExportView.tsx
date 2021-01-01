@@ -1,5 +1,5 @@
 import * as React from "react";
-import { EntityMetadata, TestAction, TestAssertion, TestSuite } from "../domain/TestSuite";
+import { EntityMetadata, TestAction, TestAssertion, TestDefinition, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
 import { TextField } from "@fluentui/react/lib/TextField";
@@ -25,6 +25,31 @@ const generateVisibilityExpression = (e: TestAssertion, metadata: EntityMetadata
             return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(${e.assertions.expectedVisibility.type === "visible"});`;
     }
 }
+
+const generatePreTestNavigationExpression = (test: TestDefinition, metadata: EntityMetadata): Array<string> => {
+    if (!test.preTestNavigation) {
+        return [undefined];
+    }
+
+    switch (test.preTestNavigation.type) {
+        case "new":
+            return [`await xrmTest.Navigation.openCreateForm("${test.preTestNavigation.entity}");`];
+        case "existing":
+            return [`await xrmTest.Navigation.openUpdateForm("${test.preTestNavigation.entity}", "${test.preTestNavigation.recordId}");`];
+        case "lookup":
+            return [
+                `expect((await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}"))).not.toBeNull();`,
+                `await xrmTest.Navigation.openUpdateForm((await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}")[0].entityType), (await xrmTest.Attribute.getValue("${test.preTestNavigation.logicalName}")[0].id));`
+            ];
+        case "subgrid":
+            return [
+                `expect((await xrmUiTest.Subgrid.getRecordCount("${test.preTestNavigation.subgridName}"))).toBeGreaterThanOrEqual(${test.preTestNavigation.recordPosition} + 1);`,
+                `await xrmUiTest.Subgrid.openNthRecord("${test.preTestNavigation.subgridName}", ${test.preTestNavigation.recordPosition});`
+            ];
+        default:
+            return [undefined];
+    }
+};
 
 const stringifyValue = (attributeType: Xrm.Attributes.AttributeType, value: any) => {
     const stringEscaper = (value: any) => value != null ? `"${value.toString()?.replace(/"/g, '\\"')}"` : "null";
@@ -119,7 +144,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
     
     describe("Basic operations UCI", () => {
         beforeAll(async() => {
-            // Every test may take 2 minutes at max
+            // Every test may take up to 2 minutes before it times out
             jest.setTimeout(120000);
     
             await xrmTest.launch("chromium", {
@@ -152,7 +177,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
 ${state.tests.filter(t => !!t).map(t => {
     return [
         `test("${t.name}", async () => {`,
-        t.preTestNavigation ? (t.preTestNavigation.recordId ? `await xrmTest.Navigation.openUpdateForm("${t.preTestNavigation.entity}", "${t.preTestNavigation.recordId}")` : `await xrmTest.Navigation.openCreateForm("${t.preTestNavigation.entity}");`) : undefined,
+        ...generatePreTestNavigationExpression(t, state.metadata[t.entityLogicalName]).filter(e => !!e),
         ...(t.actions || [])
             .reduce((all, cur) => [...all, ...generateExpression(cur, state.metadata[t.entityLogicalName])], []),
         "});"

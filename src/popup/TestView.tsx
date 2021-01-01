@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AssertionDefinition, FormAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TestTimeout } from "../domain/TestSuite";
+import { AssertionDefinition, ExistingRecordNavigation, FormAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TestTimeout } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { Dropdown, DropdownMenuItemType, IDropdownOption, IDropdownProps } from "@fluentui/react/lib/Dropdown";
@@ -18,7 +18,9 @@ import { StandardControl } from "../domain/ControlTypes";
 import { ActionDropdown } from "./ActionDropdown";
 
 export interface TestViewProps {
+    previousTest: TestDefinition;
     test: TestDefinition;
+    position: number;
     formState: FormState;
     suite: TestSuite;
     updateTest: (id: string, test: TestDefinition) => void;
@@ -26,7 +28,7 @@ export interface TestViewProps {
     moveTestDown: (id: string) => void;
 }
 
-export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updateTest, moveTestUp, moveTestDown}) => {
+export const TestView: React.FC<TestViewProps> = ({position, test, previousTest, suite, formState, updateTest, moveTestUp, moveTestDown}) => {
     const addAssertion = () => {
         const update: TestDefinition = {
             ...test,
@@ -48,6 +50,7 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
         updateTest(test.id, update);
     };
     
+    const previousSortedElements = !previousTest ? [] : (suite?.metadata[previousTest.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
     const sortedElements = (suite?.metadata[test.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
 
     const options: IDropdownOption[] = [
@@ -253,19 +256,91 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
         padding: "5px"
     };
 
+    const onInitializationActionLookupSelection = (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void => {
+        if (!test.preTestNavigation) {
+            return;
+        }
+
+        if (test.preTestNavigation.type === "lookup" && !!previousTest) {
+            test.preTestNavigation.controlName = item.id;
+            const control = suite.metadata[previousTest.entityLogicalName]?.controls?.find(c => c.controlName === item.id && c.type === "control") as StandardControl;
+
+            test.preTestNavigation.logicalName = control?.logicalName ?? "";
+        }
+
+        updateTest(test.id, test);
+    };
+    
+    const onInitializationActionRecordIdChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text: string): void => {
+        if (!test.preTestNavigation) {
+            return;
+        }
+
+        if(test.preTestNavigation.type === "existing") {
+            test.preTestNavigation.recordId = text;
+        }
+
+        updateTest(test.id, test);
+    };
+
+    const onInitializationActionSubgridPositionChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, positionString: string): void => {
+        if (!test.preTestNavigation) {
+            return;
+        }
+
+        const position = parseInt(positionString);
+
+        if (test.preTestNavigation.type === "subgrid" && !isNaN(position)) {
+            test.preTestNavigation.recordPosition = position;
+        }
+
+        updateTest(test.id, test);
+    };
+
+    const onInitializationActionSubgridSelection = (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void => {
+        if (!test.preTestNavigation) {
+            return;
+        }
+
+        if (test.preTestNavigation.type === "subgrid") {
+            test.preTestNavigation.subgridName = item.id;
+        }
+
+        updateTest(test.id, test);
+    };
+
     const onInitializationActionChange = (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void => {
         let preTestNavigation: PreTestNavigation = undefined;
 
-        if (item.key === "new") {
+        if (item.id === "new") {
             preTestNavigation = {
+                type: "new",
                 entity: formState?.entity
             };
         }
-        else if (item.key === "existing") {
+        else if (item.id === "existing") {
             preTestNavigation = {
+                type: "existing",
                 entity: formState?.entity,
                 recordId: formState?.recordId
             };
+        }
+        else if (item.id === "lookup") {
+            preTestNavigation = {
+                type: "lookup",
+                logicalName: "",
+                controlName: ""
+            };
+        }
+        else if (item.id === "subgrid") {
+            preTestNavigation = {
+                type: "subgrid",
+                subgridName: "",
+                recordPosition: 0
+            };
+        }
+        else if (item.id === "noop") {
+            preTestNavigation = undefined;
         }
 
         updateTest(test.id, {...test, preTestNavigation: preTestNavigation });
@@ -414,29 +489,54 @@ export const TestView: React.FC<TestViewProps> = ({test, suite, formState, updat
             <Card.Section tokens={cardSectionTokens}>
                 <Dropdown
                     label="Initialization Action (Navigation)"
-                    selectedKey={!test.preTestNavigation ? "none" : (test.preTestNavigation.recordId ? "existing" : "new")}
+                    selectedKey={test.preTestNavigation?.type ?? (!!position ? "noop" : "new")}
                     onChange={onInitializationActionChange}
                     options={[
-                        { text: "None", id: "none", key: "none" },
+                        // First test needs to have a proper navigation
+                        !position ? undefined : { text: "No-Op", id: "noop", key: "noop" },
                         { text: "New Record", id: "new", key: "new" },
                         { text: "Existing Record", id: "existing", key: "existing" },
-                        { text: "Click lookup", id: "lookup", key: "lookup" },
-                        { text: "Open Subgrid Record", id: "subgrid", key: "subgrid" }
-                    ]}
+                        !previousTest ? undefined : { text: "Click lookup", id: "lookup", key: "lookup" },
+                        !previousTest ? undefined : { text: "Open Subgrid Record", id: "subgrid", key: "subgrid" }
+                    ].filter(e => !!e)}
                 />
-                { test.preTestNavigation && test.preTestNavigation.recordId && <Text>{test.preTestNavigation.recordId}</Text>}
+                { test.preTestNavigation && test.preTestNavigation.type === "lookup" &&
+                    <Dropdown
+                        onChange={onInitializationActionLookupSelection}
+                        selectedKey={test.preTestNavigation.controlName}
+                        options={!previousSortedElements ? [] : [
+                            { key: 'attributesHeader', text: 'Attribute Controls', itemType: DropdownMenuItemType.Header },
+                            ...previousSortedElements.filter(a => a.type === "control" && a.attributeType === "lookup").map((a: StandardControl) => ({ id: a.controlName, key: a.controlName, text: `${a.label} (${a.controlName}, ${a.logicalName}, ${a.attributeType})`}))
+                        ]}
+                    />
+                }
+                { test.preTestNavigation && test.preTestNavigation.type === "subgrid" &&
+                    <div style={{display: "flex", flexDirection: "row"}}>
+                        <Dropdown
+                            onChange={onInitializationActionSubgridSelection}
+                            selectedKey={test.preTestNavigation.subgridName}
+                            options={!previousSortedElements ? [] : [
+                                { key: 'subgridsHeader', text: 'Subgrid Controls', itemType: DropdownMenuItemType.Header },
+                                ...previousSortedElements.filter(a => a.type === "control" && a.controlType === "subgrid").map(a => ({ id: a.controlName, key: a.controlName, text: `${a.label} (${a.controlName})` }))
+                            ]}
+                        />
+                        <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}} className={classNames.eventText}>Position</Text>
+                        <TextField styles={{root: {paddingLeft: "5px"}}} placeholder="Enter record position (zero based)" value={test.preTestNavigation.recordPosition?.toString() ?? ""} onChange={onInitializationActionSubgridPositionChange} />
+                    </div>
+                }
+                { test.preTestNavigation && test.preTestNavigation.type === "existing" && <TextField onChange={onInitializationActionRecordIdChange} value={test.preTestNavigation.recordId} />}
             </Card.Section>
             <Card.Section tokens={cardSectionTokens}>
                 <Text>Actions <IconButton aria-label="Add Action" label="Add Action" iconProps={{iconName: "UserEvent"}} onClick={addAction} /> <IconButton aria-label="Add Assertion" label="Add Assertion" iconProps={{iconName: "CheckList"}} onClick={addAssertion} /> <IconButton aria-label="Add Timeout" label="Add Timeout" iconProps={{iconName: "Timer"}} onClick={addTimeout} /></Text>
-                <div style={{overflow: "auto", width: "100%", height: "200px"}}>
+                <div style={{overflow: "auto", width: "100%", maxHeight: "250px"}}>
                     { 
                         test.actions?.map((c, i) => {
                             const buttons = (
-                                <>
+                                <div style={{flex: "1"}}>
                                     <IconButton onClick={() => onMoveActionUp(i)} iconProps={{iconName: "ChevronUp"}} />
                                     <IconButton onClick={() => onMoveActionDown(i)} iconProps={{iconName: "ChevronDown"}} />
                                     <IconButton onClick={() => onDeleteAction(i)} iconProps={{iconName: "Delete"}} />
-                                </>
+                                </div>
                             );
                             
                             return (
