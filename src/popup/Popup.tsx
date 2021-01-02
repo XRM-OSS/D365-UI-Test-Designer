@@ -3,7 +3,7 @@ import { TestDefinition, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { CaptureView } from "./CaptureView";
 import { ExportView } from "./ImportExportView";
-import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite, defaultTestSuite } from "../domain/Storage";
+import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite, defaultTestSuite, getStoredGlobalState } from "../domain/Storage";
 import { IOverflowSetItemProps, OverflowSet } from "@fluentui/react/lib/OverflowSet";
 import { CommandBarButton, DefaultButton, IButtonStyles, IconButton, PrimaryButton } from "@fluentui/react/lib/Button";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +13,7 @@ import { swapPositions } from "../domain/SwapPositions";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { Dialog, DialogFooter, DialogType } from "@fluentui/react/lib/Dialog";
 import { Dropdown } from "@fluentui/react/lib/Dropdown";
+import { GlobalState } from "../domain/GlobalState";
 
 const sendMessage = (payload: CommunicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
@@ -21,6 +22,7 @@ const sendMessage = (payload: CommunicationRequest, cb?: (r: any) => void) => {
 export const PopUp: React.FC<any> = () => {
     const [pageState, setPageState] = React.useState({} as PageState);
     const [testSuite, setTestSuite] = React.useState({} as TestSuite);
+    const [globalState, setGlobalState] = React.useState({} as GlobalState);
     const [activeTab, setActiveTab] = React.useState("#capture");
     const [entitySelectorHidden, setEntitySelectorHidden] = React.useState(true);
     const [testEntityLogicalName, setTestEntityLogicalName] = React.useState("");
@@ -30,6 +32,8 @@ export const PopUp: React.FC<any> = () => {
         setPageState(newPageState);
         const newTestSuite = await getStoredTestSuite();
         setTestSuite(newTestSuite);
+        const newGlobalState = await getStoredGlobalState();
+        setGlobalState(newGlobalState);
     };
 
     const persistTestSuite = async (suite: TestSuite) => {
@@ -40,6 +44,10 @@ export const PopUp: React.FC<any> = () => {
     React.useEffect(() => {
         if (!pageState.formState) {
             sendMessage({ recipient: "page", operation: "getFormState" });
+        }
+
+        if (!globalState.appId) {
+            sendMessage({ recipient: "page", operation: "getGlobalState" });
         }
 
         sendMessage({ recipient: "page", operation: "getEntityMetadata" });
@@ -249,7 +257,7 @@ export const PopUp: React.FC<any> = () => {
                 items={navItems.filter(i => !!i)}
             />
             <div style={{padding: "5px"}}>
-                { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} updateTest={updateTest} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
+                { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} globalState={globalState} updateTest={updateTest} updateSuite={persistTestSuite} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
                 { activeTab === "#export" && <ExportView importTestSuite={persistTestSuite} state={testSuite}></ExportView> }
             </div>
         </div>

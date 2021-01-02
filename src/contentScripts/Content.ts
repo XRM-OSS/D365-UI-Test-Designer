@@ -2,6 +2,7 @@ import { ControlState, FormState } from "../domain/PageState";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { EntityMetadata } from "../domain/TestSuite";
 import { EntityControl, SectionControl, TabControl } from "../domain/ControlTypes";
+import { GlobalState } from "../domain/GlobalState";
 
 class PageLogic
 {
@@ -70,9 +71,9 @@ class PageLogic
         }
     };
 
-    private handlers: {[key: string]: (data?: any) => [ boolean, any ]} = {
-        "getFormState": () => {
-            var xrm = this.oss_FindXrm();
+    private handlers: {[key: string]: (data?: any) => Promise<[ boolean, any ]>} = {
+        "getFormState": async () => {
+            const xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
                 return [false, undefined];
@@ -99,8 +100,8 @@ class PageLogic
                 .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map((s: Xrm.Controls.Section) => ({ type: "section", controlName: s.getName(), label: s.getLabel(), visible: s.getVisible() && (!s.getParent() || s.getParent().getVisible())} as ControlState)))
             } as FormState];
         },
-        "getEntityMetadata": () => {
-            var xrm = this.oss_FindXrm();
+        "getEntityMetadata": async () => {
+            const xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
                 return [false, undefined];
@@ -124,8 +125,8 @@ class PageLogic
                 .concat(xrm.Page.ui.tabs.get().reduce((all, cur) => [...all, ...cur.sections.get()], []).map(s => ({ type: "section", controlName: s.getName(), tabName: s.getParent() && s.getParent().getName(), label: s.getLabel() } as SectionControl)))
             } as EntityMetadata];
         },
-        "startRecording": (testId: string) => {
-            var xrm = this.oss_FindXrm();
+        "startRecording": async (testId: string) => {
+            const xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
                 return [false, undefined];
@@ -136,8 +137,8 @@ class PageLogic
 
             return [ true, testId];
         },
-        "stopRecording": () => {
-            var xrm = this.oss_FindXrm();
+        "stopRecording": async () => {
+            const xrm = this.oss_FindXrm();
 
             if (!xrm || !xrm.Page.data || !xrm.Page.data.entity) {
                 return [false, undefined];
@@ -147,11 +148,21 @@ class PageLogic
             xrm.Page.data.entity.removeOnSave(this.onSave);
 
             return [true, true];
+        },
+        "getGlobalState": async () => {
+            const xrm = this.oss_FindXrm();
+
+            const globalContext = xrm.Utility.getGlobalContext();
+            const appProperties = await globalContext.getCurrentAppProperties();
+
+            return [true, {
+                appId: appProperties.appId
+            } as GlobalState];
         }
     };
 
     bootstrap() {
-        window.addEventListener("message", (event) => {
+        window.addEventListener("message", async (event) => {
             const eventData = event.data;
             if (!eventData || eventData.type !== "__D365_UITest_Content") {
                 return;
@@ -164,7 +175,7 @@ class PageLogic
                 this.sendMessage({ recipient: "popup", operation: operation, success: false, data: "Operation not found" });
             }
 
-            const [success, data] = this.handlers[operation](message.data);
+            const [success, data] = await this.handlers[operation](message.data);
             this.sendMessage({ recipient: "popup", operation: operation, success: success, data: data });
         });
     }

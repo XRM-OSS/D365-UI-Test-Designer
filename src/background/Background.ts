@@ -1,6 +1,6 @@
 import { EntityMetadata, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
-import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite } from "../domain/Storage";
+import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTestSuite, getStoredGlobalState, setStoredGlobalState } from "../domain/Storage";
 
 const processMessageToPage = async (request: CommunicationRequest) => {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -42,6 +42,9 @@ const processMessageToPopUp = async (request: CommunicationResponse) => {
             activeTest && activeTest.actions.push(request.data);
             await setStoredTestSuite(testSuite);
             break;
+        case "getGlobalState":
+            await setStoredGlobalState(request.data);
+            break;
     }
 
     console.log("Backend script received message for popup: " + JSON.stringify(request));
@@ -78,5 +81,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         state.formState = undefined;
 
         await setStoredPageState(state);
+
+        const globalState = await getStoredGlobalState();
+        globalState.appId = undefined;
+
+        await setStoredGlobalState(globalState);
     });
 });

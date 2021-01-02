@@ -172,6 +172,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
             const [url, user, password, mfaSecret] = config.split(",");
     
             await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
+            ${state.settings && state.settings.appId && `await xrmTest.Navigation.openAppById("${state.settings.appId}");`}
         });
         
 ${state.tests.filter(t => !!t).map(t => {

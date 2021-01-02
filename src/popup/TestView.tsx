@@ -473,18 +473,21 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
 
     return (
         <Card tokens={cardTokens} styles={{ root: { width: "100%" } }}>
-            <Card.Item>
-                <IconButton onClick={onMoveUp} iconProps={{iconName: "ChevronUp"}} />
-                <IconButton onClick={onMoveDown} iconProps={{iconName: "ChevronDown"}} />
-                <IconButton onClick={onDelete} iconProps={{iconName: "Delete"}} />
-            </Card.Item>
             <Card.Item tokens={cardSectionTokens}>
-                <TextField
-                    label="Name"
-                    value={test.name}
-                    onChange={onChangeName}
-                    required
-                />
+                <div style={{display: "flex", flexDirection: "row"}}>
+                    <TextField
+                        label="Name"
+                        value={test.name}
+                        onChange={onChangeName}
+                        required
+                        styles={{root: {flex: "1"}}}
+                    />
+                    <div style={{paddingLeft: "5px", paddingTop: "30px"}}>
+                        <IconButton onClick={onMoveUp} iconProps={{iconName: "ChevronUp"}} />
+                        <IconButton onClick={onMoveDown} iconProps={{iconName: "ChevronDown"}} />
+                        <IconButton onClick={onDelete} iconProps={{iconName: "Delete"}} />
+                    </div>
+                </div>
             </Card.Item>
             <Card.Section tokens={cardSectionTokens}>
                 <Dropdown

@@ -75,7 +75,12 @@ export interface EntityMetadata {
     controls: Array<EntityControl>;
 }
 
+export interface Settings {
+    appId?: string;
+}
+
 export interface TestSuite {
     metadata: {[key: string]: EntityMetadata};
     tests?: Array<TestDefinition>;
+    settings?: Settings;
 }
