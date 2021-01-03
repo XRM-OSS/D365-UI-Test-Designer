@@ -1,10 +1,10 @@
 import { EntityControl } from "./ControlTypes";
 
 export interface FormAction {
-    event: "setValue" | "save";
+    event: "setValue" | "save" | "activate" | "deactivate" | "delete";
     attributeType?: Xrm.Attributes.AttributeType;
-    name: string;
-    logicalName: string;
+    name?: string;
+    logicalName?: string;
     value?: any;
 }
 

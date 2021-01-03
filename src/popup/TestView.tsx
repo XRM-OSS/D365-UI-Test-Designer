@@ -46,7 +46,28 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
     const addSaveAction = () => {
         const update: TestDefinition = {
             ...test,
-            actions: (test.actions ?? []).concat([{ event: "save", name: "", logicalName: "" }])};
+            actions: (test.actions ?? []).concat([{ event: "save" }])};
+        updateTest(test.id, update);
+    };
+
+    const addActivateAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "activate" }])};
+        updateTest(test.id, update);
+    };
+
+    const addDeactivateAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "deactivate" }])};
+        updateTest(test.id, update);
+    };
+
+    const addDeleteAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "delete" }])};
         updateTest(test.id, update);
     };
 
@@ -562,6 +583,27 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     onClick: addSaveAction,
                                     title: "Add a new save action"
                                   },
+                                  {
+                                    key: 'activate',
+                                    text: 'Activate',
+                                    iconProps: { iconName: 'DocumentManagement' },
+                                    onClick: addActivateAction,
+                                    title: "Add an action for clicking the activate button"
+                                  },
+                                  {
+                                    key: 'deactivate',
+                                    text: 'Deactivate',
+                                    iconProps: { iconName: 'ProtectedDocument' },
+                                    onClick: addDeactivateAction,
+                                    title: "Add an action for clicking the deactivate button"
+                                  },
+                                  {
+                                    key: 'delete',
+                                    text: 'Delete',
+                                    iconProps: { iconName: 'Delete' },
+                                    onClick: addDeleteAction,
+                                    title: "Add an action for clicking the delete button"
+                                  }
                                 ],
                                 directionalHintFixed: true
                               }}

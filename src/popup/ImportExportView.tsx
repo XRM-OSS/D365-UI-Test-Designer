@@ -90,6 +90,12 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
             return [`await xrmTest.Attribute.setValue("${e.name}", ${stringifyValue(e.attributeType, e.value)});`];
         case "save":
             return [`await xrmTest.Entity.save(true);`];
+        case "activate":
+            return [`await xrmTest.Entity.activate();`];
+        case "deactivate":
+            return [`await xrmTest.Entity.deactivate();`];
+        case "delete":
+            return [`await xrmTest.Entity.delete();`];
         case "timeout":
             return [`await page.waitForTimeout(${e.duration});`];
         case "assertion":
