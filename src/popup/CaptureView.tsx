@@ -40,8 +40,8 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, suite, globa
                 <Text styles={{root: { paddingTop: "5px", fontWeight: "bold"}}}>Settings</Text>
                 <div style={{display: "flex", flexDirection: "row", paddingTop: "5px"}}>
                     <Text styles={{root: { paddingTop: "5px" } }}>App Id</Text>
-                    <TextField placeholder="Leave empty for using default app" styles={{root: { paddingLeft: "5px", flex: "1"}}} onChange={onUpdateAppId} value={suite.settings?.appId} />
-                    <IconButton onClick={onRefreshAppId} iconProps={{iconName: "Refresh"}}></IconButton>
+                    <TextField placeholder="Leave empty for using default app" styles={{root: { paddingLeft: "5px", flex: "1"}}} onChange={onUpdateAppId} value={suite.settings?.appId ?? ""} />
+                    <IconButton title="Insert the ID of the current app" onClick={onRefreshAppId} iconProps={{iconName: "Refresh"}}></IconButton>
                 </div>
             </Stack.Item>
             <Stack.Item>

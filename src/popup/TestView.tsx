@@ -36,10 +36,17 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, update);
     };
 
-    const addAction = () => {
+    const addValueAction = () => {
         const update: TestDefinition = {
             ...test,
             actions: (test.actions ?? []).concat([{ event: "setValue", name: "", logicalName: "" }])};
+        updateTest(test.id, update);
+    };
+
+    const addSaveAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "save", name: "", logicalName: "" }])};
         updateTest(test.id, update);
     };
 
@@ -483,9 +490,9 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         styles={{root: {flex: "1"}}}
                     />
                     <div style={{paddingLeft: "5px", paddingTop: "30px"}}>
-                        <IconButton onClick={onMoveUp} iconProps={{iconName: "ChevronUp"}} />
-                        <IconButton onClick={onMoveDown} iconProps={{iconName: "ChevronDown"}} />
-                        <IconButton onClick={onDelete} iconProps={{iconName: "Delete"}} />
+                        <IconButton title="Move this test one position up" onClick={onMoveUp} iconProps={{iconName: "ChevronUp"}} />
+                        <IconButton title="Move this test one position down" onClick={onMoveDown} iconProps={{iconName: "ChevronDown"}} />
+                        <IconButton title="Delete this test" onClick={onDelete} iconProps={{iconName: "Delete"}} />
                     </div>
                 </div>
             </Card.Item>
@@ -531,15 +538,47 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 { test.preTestNavigation && test.preTestNavigation.type === "existing" && <TextField onChange={onInitializationActionRecordIdChange} value={test.preTestNavigation.recordId} />}
             </Card.Section>
             <Card.Section tokens={cardSectionTokens}>
-                <Text>Actions <IconButton aria-label="Add Action" label="Add Action" iconProps={{iconName: "UserEvent"}} onClick={addAction} /> <IconButton aria-label="Add Assertion" label="Add Assertion" iconProps={{iconName: "CheckList"}} onClick={addAssertion} /> <IconButton aria-label="Add Timeout" label="Add Timeout" iconProps={{iconName: "Timer"}} onClick={addTimeout} /></Text>
+                <div style={{display: "flex", flexDirection: "row"}}>
+                    <Text styles={{root: {paddingTop: "5px"}}}>Actions</Text>
+                    <div style={{paddingLeft: "5px"}}>
+                        <IconButton
+                            aria-label="Add Action"
+                            label="Add Action"
+                            iconProps={{iconName: "UserEvent"}}
+                            onClick={addValueAction}
+                            menuProps={{
+                                items: [
+                                  {
+                                    key: 'setValue',
+                                    text: 'Set Value',
+                                    iconProps: { iconName: 'UserEvent' },
+                                    onClick: addValueAction,
+                                    title: "Add a new set value action"
+                                  },
+                                  {
+                                    key: 'save',
+                                    text: 'Save',
+                                    iconProps: { iconName: 'Save' },
+                                    onClick: addSaveAction,
+                                    title: "Add a new save action"
+                                  },
+                                ],
+                                directionalHintFixed: true
+                              }}
+                            title="Add a new set value action"
+                        />
+                        <IconButton aria-label="Add Assertion" title="Add a new assertion action" label="Add Assertion" iconProps={{iconName: "CheckList"}} onClick={addAssertion} />
+                        <IconButton aria-label="Add Timeout" title="Add a new timeout action" label="Add Timeout" iconProps={{iconName: "Timer"}} onClick={addTimeout} />
+                    </div>
+                </div>
                 <div style={{overflow: "auto", width: "100%", maxHeight: "250px"}}>
                     { 
                         test.actions?.map((c, i) => {
                             const buttons = (
                                 <div>
-                                    <IconButton onClick={() => onMoveActionUp(i)} iconProps={{iconName: "ChevronUp"}} />
-                                    <IconButton onClick={() => onMoveActionDown(i)} iconProps={{iconName: "ChevronDown"}} />
-                                    <IconButton onClick={() => onDeleteAction(i)} iconProps={{iconName: "Delete"}} />
+                                    <IconButton title="Move this action one position up" onClick={() => onMoveActionUp(i)} iconProps={{iconName: "ChevronUp"}} />
+                                    <IconButton title="Move this action one position down" onClick={() => onMoveActionDown(i)} iconProps={{iconName: "ChevronDown"}} />
+                                    <IconButton title="Delete this action" onClick={() => onDeleteAction(i)} iconProps={{iconName: "Delete"}} />
                                 </div>
                             );
                             
