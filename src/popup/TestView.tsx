@@ -380,6 +380,25 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         }
     });
 
+    const getActivityIcon = (e: TestAction) => {
+        switch (e.event) {
+            case "timeout":
+                return "Timer";
+            case "assertion":
+                return "CheckList"
+            case "activate":
+                return "DocumentManagement";
+            case "deactivate":
+                return "ProtectedDocument";
+            case "delete":
+                return "Delete";
+            case "save":
+                return "Save";
+            default:
+                return "UserEvent";
+        }
+    }
+
     const getActionActivityDescription = (i: number, action: TestAction, buttons: React.ReactNode) => {
         switch (action.event) {
             case "setValue":
@@ -625,7 +644,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                             );
                             
                             return (
-                                <ActivityItem key={`${test.id}_${i}`} styles={{root: {borderBottom: "1px solid #7777"}}} isCompact={true} activityDescription={getActionActivityDescription(i, c, buttons)} activityIcon={<Icon iconName={c.event === "timeout" ? "Timer" : (c.event === "assertion" ? "CheckList" : "UserEvent")} />} />
+                                <ActivityItem key={`${test.id}_${i}`} styles={{root: {borderBottom: "1px solid #7777"}}} isCompact={true} activityDescription={getActionActivityDescription(i, c, buttons)} activityIcon={<Icon iconName={getActivityIcon(c)} />} />
                             );
                         })
                     }
