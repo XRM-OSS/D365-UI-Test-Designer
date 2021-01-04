@@ -23,6 +23,10 @@ Download and bootstrap the Jest Demo repository: https://github.com/XRM-OSS/D365
 
 Create your tests and paste the created suite into the spec file of your Jest Demo. Run `npm run test` for executing it.
 
+## Continuous Integration
+D365-UI-Test is cross platform. You can run it on Windows, Linux, Mac and of course also on Azure or any other CI platform.
+For getting started as fast as possible, there is a fully functioning predefined yaml pipeline definition for Azure DevOps available in the documentation: https://xrm-oss.github.io/D365-UI-Test/pages/Tutorials/10_DevOps.html
+
 # Impressions
 ## Capture and design tests
 ![Bildschirmfoto von 2020-12-28 02-07-38](https://user-images.githubusercontent.com/4287938/103183510-3a561d00-48b3-11eb-804c-de174f8858ad.png)
