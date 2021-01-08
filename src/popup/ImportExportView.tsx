@@ -87,7 +87,7 @@ const stringifyValue = (attributeType: Xrm.Attributes.AttributeType, value: any)
 const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
     switch(e.event) {
         case "setValue":
-            return [`await xrmTest.Attribute.setValue("${e.name}", ${stringifyValue(e.attributeType, e.value)});`];
+            return [`await xrmTest.Attribute.setValue("${e.logicalName}", ${stringifyValue(e.attributeType, e.value)});`];
         case "save":
             return [`await xrmTest.Entity.save(true);`];
         case "activate":
