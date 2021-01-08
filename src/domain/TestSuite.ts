@@ -66,6 +66,7 @@ export interface TestDefinition {
     entityLogicalName: string;
     preTestNavigation?: PreTestNavigation;
     name?: string;
+    description?: string;
     actions?: Array<TestAction>;
     id: string;
 }

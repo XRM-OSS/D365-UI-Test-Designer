@@ -99,6 +99,13 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         [test]
     );
 
+    const onChangeDescription = React.useCallback(
+        (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+          updateTest(test.id, {...test, description: newValue });
+        },
+        [test]
+    );
+
     const onDelete = React.useCallback(() => {
           updateTest(test.id, undefined);
         },
@@ -535,6 +542,15 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         <IconButton title="Delete this test" onClick={onDelete} iconProps={{iconName: "Delete"}} />
                     </div>
                 </div>
+            </Card.Item>
+            <Card.Item tokens={cardSectionTokens}>
+                <TextField
+                    label="Description"
+                    value={test.description}
+                    onChange={onChangeDescription}
+                    autoAdjustHeight
+                    multiline
+                />
             </Card.Item>
             <Card.Section tokens={cardSectionTokens}>
                 <Dropdown
