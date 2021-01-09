@@ -111,14 +111,16 @@ class PageLogic
                 logicalName: xrm.Page.data.entity.getEntityName(),
                 controls: xrm.Page.getControl().map(c => {
                     const attribute = ((c as any).getAttribute ? (c as any).getAttribute() : undefined) as Xrm.Attributes.Attribute;
-            
+                    const attributeType = attribute?.getAttributeType();
+
                     return {
                         type: "control",
                         controlName: c.getName(),
                         controlType: c.getControlType(),
                         label: c.getLabel(),
                         logicalName: attribute?.getName(),
-                        attributeType: attribute?.getAttributeType()
+                        attributeType: attributeType,
+                        options: attributeType === "optionset" ? (attribute as Xrm.Attributes.OptionSetAttribute)?.getOptions() : undefined
                     } as EntityControl;
                 })
                 .concat(xrm.Page.ui.tabs.get().map(t => ({ type: "tab", controlName: t.getName(), label: t.getLabel()} as TabControl)))

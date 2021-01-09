@@ -11,6 +11,7 @@ export interface StandardControl extends BaseControl {
     controlType?: string;
     logicalName?: string;
     attributeType?: Xrm.Attributes.AttributeType;
+    options?: Array<Xrm.OptionSetValue>;
 }
 
 export interface TabControl extends BaseControl {

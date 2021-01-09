@@ -205,7 +205,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, test);
     }
 
-    const onUpdateAssertionValue = (index: number, value: any) => {
+    const onUpdateAssertionValue = (index: number, value: string) => {
         const action = test.actions[index] as TestAssertion;
         action.assertions.expectedValue = {...(action.assertions.expectedValue ?? { type: "noop" }), value: typeof(value) === "string" && value === "" ? null : value };
 
@@ -418,7 +418,10 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                             selectedKey={action.name ?? action.logicalName}
                             options={options}
                         />
-                        <TextField styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v)} value={action.value ?? ""} />
+                        { action.attributeType === "optionset"
+                            ? <Dropdown options={[{key: "null", id: "null", text: "null"}].concat((suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: o.text })))} styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v.id)} selectedKey={action.value ?? "null"} />
+                            : <TextField styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v)} value={action.value ?? ""} /> 
+                        }
                         { buttons }
                     </div>
                 ];
@@ -449,7 +452,12 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     { text: "Exact Value", id: "value", key: "value" },
                                 ]}                                
                             >
-                                { action.assertions.expectedValue?.type === "value" && <TextField styles={{ root: { flex: "1", width: "100%", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v)} value={action.assertions.expectedValue?.value ?? ""} /> }
+                                { action.assertions.expectedValue?.type === "value" &&
+                                    ( action.attributeType === "optionset"
+                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}].concat((suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: o.text })))} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
+                                        : <TextField styles={{ root: { flex: "1", width: "100%", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v)} value={action.assertions.expectedValue?.value ?? ""} />
+                                    )
+                                }
                             </ActionDropdown>
                         }
                         { action.name &&
