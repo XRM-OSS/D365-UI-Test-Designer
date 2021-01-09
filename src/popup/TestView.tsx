@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AssertionDefinition, ExistingRecordNavigation, FormAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TestTimeout } from "../domain/TestSuite";
+import { AssertionDefinition, CustomButtonAction, ExistingRecordNavigation, FormAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, WaitAction } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { Dropdown, DropdownMenuItemType, IDropdownOption, IDropdownProps } from "@fluentui/react/lib/Dropdown";
@@ -71,10 +71,24 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, update);
     };
 
+    const addCustomButtonAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "customButton" }])};
+        updateTest(test.id, update);
+    };
+
     const addTimeout = () => {
         const update: TestDefinition = {
             ...test,
-            actions: (test.actions ?? []).concat([{ event: "timeout", type: "duration", duration: 2000 }])};
+            actions: (test.actions ?? []).concat([{ event: "wait", type: "duration", duration: 2000 }])};
+        updateTest(test.id, update);
+    };
+
+    const addWaitAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "wait", type: "selector", selector: "" }])};
         updateTest(test.id, update);
     };
     
@@ -254,6 +268,13 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, test);
     }
 
+    const onUpdateCustomButtonActionType = (index: number, option: IDropdownOption) => {
+        const action = test.actions[index] as CustomButtonAction;
+        action.type = option.id as any;
+
+        updateTest(test.id, test);
+    }
+
     const onUpdateFieldLevelAssertionActive = (index: number, active: boolean) => {
         const action = test.actions[index] as TestAssertion;
         action.assertions.expectedFieldLevel = {...(action.assertions.expectedFieldLevel ?? { type: "noop" }), active };
@@ -275,9 +296,30 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, test);
     }
 
-    const onUpdateTimeoutDuration = (index: number, value: string) => {
-        const action = test.actions[index] as TestTimeout;
+    const onUpdateWaitActionDuration = (index: number, value: string) => {
+        const action = test.actions[index] as WaitAction;
         action.duration = parseInt(value);
+
+        updateTest(test.id, test);
+    }
+
+    const onUpdateWaitActionType = (index: number, option: IDropdownOption) => {
+        const action = test.actions[index] as WaitAction;
+        action.type = option.id as any;
+
+        updateTest(test.id, test);
+    }
+
+    const onUpdateWaitActionSelector = (index: number, value: string) => {
+        const action = test.actions[index] as WaitAction;
+        action.selector = value;
+
+        updateTest(test.id, test);
+    }
+
+    const onUpdateCustomButtonValue = (index: number, value: string) => {
+        const action = test.actions[index] as CustomButtonAction;
+        action.value = value;
 
         updateTest(test.id, test);
     }
@@ -389,7 +431,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
 
     const getActivityIcon = (e: TestAction) => {
         switch (e.event) {
-            case "timeout":
+            case "wait":
                 return "Timer";
             case "assertion":
                 return "CheckList"
@@ -401,6 +443,8 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 return "Delete";
             case "save":
                 return "Save";
+            case "customButton":
+                return "ButtonControl";
             default:
                 return "UserEvent";
         }
@@ -514,12 +558,30 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         { buttons }
                     </div>
                 ];
-            case "timeout":
+            case "wait":
                 return [
                     <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
-                        <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}}>Timeout duration (ms)</Text>
-                        <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateTimeoutDuration(i, v)} value={action.duration?.toString()} />
+                        <Dropdown selectedKey={action.type ?? ""} placeholder="Specify wait type" onChange={(e, v) => onUpdateWaitActionType(i, v)} styles={{root: { paddingLeft: "5px", flex: "1"}}} options={[{key: "duration", id: "duration", text: "Duration"}, {key: "selector", id: "selector", text: "Selector"}]} />
+                        { action.type === "duration" 
+                            ? <>
+                                <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}}>Timeout duration (ms)</Text>
+                                <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateWaitActionDuration(i, v)} value={action.duration?.toString() ?? ""} />
+                              </>
+                            : <>
+                                <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}}>CSS Selektor</Text>
+                                <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateWaitActionSelector(i, v)} value={action.selector?.toString() ?? ""} />
+                              </>
+                        }
+                        { buttons }
+                    </div>
+                ];
+            case "customButton":
+                return [
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
+                        <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
+                        <Dropdown selectedKey={action.type ?? ""} placeholder="Specify button selector" onChange={(e, v) => onUpdateCustomButtonActionType(i, v)} styles={{root: { paddingLeft: "5px", flex: "1"}}} options={[{key: "byLabel", id: "byLabel", text: "By Label"}, {key: "byDataId", id: "byDataId", text: "By Data Id"}, {key: "custom", id: "custom", text: "Custom"}]} />
+                        <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateCustomButtonValue(i, v)} value={action.value ?? ""} />
                         { buttons }
                     </div>
                 ];
@@ -625,7 +687,19 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     iconProps: { iconName: 'Save' },
                                     onClick: addSaveAction,
                                     title: "Add a new save action"
-                                  },
+                                  }
+                                ],
+                                directionalHintFixed: true
+                              }}
+                            title="Add a new set value action"
+                        />
+                        <IconButton
+                            aria-label="Click Button"
+                            label="Click Button"
+                            iconProps={{iconName: "ButtonControl"}}
+                            onClick={addValueAction}
+                            menuProps={{
+                                items: [
                                   {
                                     key: 'activate',
                                     text: 'Activate',
@@ -646,14 +720,21 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     iconProps: { iconName: 'Delete' },
                                     onClick: addDeleteAction,
                                     title: "Add an action for clicking the delete button"
+                                  },
+                                  {
+                                    key: 'custom',
+                                    text: 'Custom',
+                                    iconProps: { iconName: 'ButtonControl' },
+                                    onClick: addCustomButtonAction,
+                                    title: "Add an action for clicking any button"
                                   }
                                 ],
                                 directionalHintFixed: true
                               }}
-                            title="Add a new set value action"
+                            title="Add a new button action"
                         />
                         <IconButton aria-label="Add Assertion" title="Add a new assertion action" label="Add Assertion" iconProps={{iconName: "CheckList"}} onClick={addAssertion} />
-                        <IconButton aria-label="Add Timeout" title="Add a new timeout action" label="Add Timeout" iconProps={{iconName: "Timer"}} onClick={addTimeout} />
+                        <IconButton aria-label="Add Wait Action" title="Add a new wait action" label="Add Wait Action" iconProps={{iconName: "Timer"}} onClick={addTimeout} />
                     </div>
                 </div>
                 <div style={{overflow: "auto", width: "100%", maxHeight: "250px"}}>

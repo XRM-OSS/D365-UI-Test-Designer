@@ -96,8 +96,22 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
             return [`await xrmTest.Entity.deactivate();`];
         case "delete":
             return [`await xrmTest.Entity.delete();`];
-        case "timeout":
-            return [`await page.waitForTimeout(${e.duration});`];
+        case "customButton":
+            switch(e.type) {
+                case "byDataId":
+                    return [`await xrmTest.Button.click({ byDataId: ${stringifyValue("string", e.value)} });`];
+                case "byLabel":
+                    return [`await xrmTest.Button.click({ byLabel: ${stringifyValue("string", e.value)} });`];
+                case "custom":
+                    return [`await xrmTest.Button.click({ custom: ${stringifyValue("string", e.value)} });`];
+            }
+        case "wait":
+            if (e.type === "duration") {
+                return [`await page.waitForTimeout(${e.duration});`];
+            }
+            else {
+                return [`await page.waitForSelector(${stringifyValue("string", e.selector)});`];
+            }
         case "assertion":
             return [
                 (e.assertions.expectedVisibility?.active && e.assertions.expectedVisibility?.type !== "noop")

@@ -16,11 +16,17 @@ export interface AssertionDefinition {
     expectedValue?: { type: "noop" | "null" | "notnull" | "value", active?: boolean, value?: any };
 }
 
-export interface TestTimeout {
-    event: "timeout";
+export interface WaitAction {
+    event: "wait";
     type: "duration" | "selector";
     duration?: number;
     selector?: string;
+}
+
+export interface CustomButtonAction {
+    event: "customButton";
+    type?: "byLabel" | "byDataId" | "custom";
+    value?: string;
 }
 
 export interface TestAssertion {
@@ -31,7 +37,7 @@ export interface TestAssertion {
     attributeType?: Xrm.Attributes.AttributeType;
 }
 
-export type TestAction = FormAction | TestAssertion | TestTimeout;
+export type TestAction = FormAction | TestAssertion | WaitAction | CustomButtonAction;
 
 export interface NoRecordNavigation {
     type: "noop";
