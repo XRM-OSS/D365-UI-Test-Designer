@@ -138,7 +138,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
     }
 
     const exportValue = `
-    import { XrmUiTest } from "d365-ui-test";
+    import { XrmUiTest, TestUtils } from "d365-ui-test";
     import * as fs from "fs";
     import * as playwright from "playwright";
     import * as path from "path";
@@ -183,12 +183,12 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
         
 ${state.tests.filter(t => !!t).map(t => {
     return [
-        `test("${t.name}", async () => {`,
+        `test("${t.name}", TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name}.png"), async () => {`,
         ...generatePreTestNavigationExpression(t, state.metadata[t.entityLogicalName]).filter(e => !!e),
         ...(t.actions || [])
             .reduce((all, cur) => [...all, ...generateExpression(cur, state.metadata[t.entityLogicalName])], []),
-        "});"
-    ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "});") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
+        "}));"
+    ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "}));") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
 }).join("\n\n")}
     
         afterAll(() => {
