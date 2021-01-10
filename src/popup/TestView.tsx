@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AssertionDefinition, CustomButtonAction, ExistingRecordNavigation, FormAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, WaitAction } from "../domain/TestSuite";
+import { AssertionDefinition, CustomButtonAction, ExistingRecordNavigation, FormAction, PressAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TypeAction, WaitAction } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { Dropdown, DropdownMenuItemType, IDropdownOption, IDropdownProps } from "@fluentui/react/lib/Dropdown";
@@ -47,6 +47,20 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         const update: TestDefinition = {
             ...test,
             actions: (test.actions ?? []).concat([{ event: "save" }])};
+        updateTest(test.id, update);
+    };
+
+    const addTypeAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "type", selector: "", text: "" }])};
+        updateTest(test.id, update);
+    };
+
+    const addPressAction = () => {
+        const update: TestDefinition = {
+            ...test,
+            actions: (test.actions ?? []).concat([{ event: "press", selector: "", key: "" }])};
         updateTest(test.id, update);
     };
 
@@ -324,6 +338,34 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, test);
     }
 
+    const onUpdateTypeActionSelector = (index: number, value: string) => {
+        const action = test.actions[index] as TypeAction;
+        action.selector = value;
+
+        updateTest(test.id, test);
+    }
+
+    const onUpdateTypeActionText = (index: number, value: string) => {
+        const action = test.actions[index] as TypeAction;
+        action.text = value;
+
+        updateTest(test.id, test);
+    }
+
+    const onUpdatePressActionSelector = (index: number, value: string) => {
+        const action = test.actions[index] as PressAction;
+        action.selector = value;
+
+        updateTest(test.id, test);
+    }
+
+    const onUpdatePressActionKey = (index: number, value: string) => {
+        const action = test.actions[index] as PressAction;
+        action.key = value;
+
+        updateTest(test.id, test);
+    }
+
     const cardTokens: ICardTokens = {
         childrenGap: "10px",
         maxWidth: "100%"
@@ -445,6 +487,10 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 return "Save";
             case "customButton":
                 return "ButtonControl";
+            case "type":
+                return "KeyboardClassic";
+            case "press":
+                return "Fingerprint";
             default:
                 return "UserEvent";
         }
@@ -585,6 +631,28 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         { buttons }
                     </div>
                 ];
+            case "type":
+                return [
+                    <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
+                        <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
+                        <Text styles={{root: { marginLeft: "5px", paddingTop: "5px"}}}>CSS Selector</Text>
+                        <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateTypeActionSelector(i, v)} value={action.selector ?? ""} />
+                        <Text styles={{root: { marginLeft: "5px", paddingTop: "5px"}}}>Text</Text>
+                        <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateTypeActionText(i, v)} value={action.text ?? ""} />
+                        { buttons }
+                    </div>
+                ];
+            case "press":
+                    return [
+                        <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
+                            <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
+                            <Text styles={{root: { marginLeft: "5px", paddingTop: "5px"}}}>CSS Selector</Text>
+                            <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdatePressActionSelector(i, v)} value={action.selector ?? ""} />
+                            <Text styles={{root: { marginLeft: "5px", paddingTop: "5px"}}}>Key</Text>
+                            <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdatePressActionKey(i, v)} value={action.key ?? ""} />
+                            { buttons }
+                        </div>
+                    ];
             default:
                 return [
                     <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
@@ -687,6 +755,20 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     iconProps: { iconName: 'Save' },
                                     onClick: addSaveAction,
                                     title: "Add a new save action"
+                                  },
+                                  {
+                                    key: 'type',
+                                    text: 'Type',
+                                    iconProps: { iconName: 'KeyboardClassic' },
+                                    onClick: addTypeAction,
+                                    title: "Add a new type action"
+                                  },
+                                  {
+                                    key: 'press',
+                                    text: 'Press',
+                                    iconProps: { iconName: 'Fingerprint' },
+                                    onClick: addPressAction,
+                                    title: "Add a new button press action"
                                   }
                                 ],
                                 directionalHintFixed: true
@@ -722,8 +804,8 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     title: "Add an action for clicking the delete button"
                                   },
                                   {
-                                    key: 'custom',
-                                    text: 'Custom',
+                                    key: 'clickButton',
+                                    text: 'Click Button',
                                     iconProps: { iconName: 'ButtonControl' },
                                     onClick: addCustomButtonAction,
                                     title: "Add an action for clicking any button"

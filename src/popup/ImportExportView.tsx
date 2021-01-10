@@ -105,6 +105,10 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
                 case "custom":
                     return [`await xrmTest.Button.click({ custom: ${stringifyValue("string", e.value)} });`];
             }
+        case "type":
+            return [`await page.type(${stringifyValue("string", e.selector)}, ${stringifyValue("string", e.text)});`];
+        case "press":
+                return [`await page.press(${stringifyValue("string", e.selector)}, ${stringifyValue("string", e.key)});`];
         case "wait":
             if (e.type === "duration") {
                 return [`await page.waitForTimeout(${e.duration});`];

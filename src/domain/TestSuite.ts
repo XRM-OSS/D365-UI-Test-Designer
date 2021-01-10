@@ -29,6 +29,18 @@ export interface CustomButtonAction {
     value?: string;
 }
 
+export interface TypeAction {
+    event: "type";
+    selector: string;
+    text: string;
+}
+
+export interface PressAction {
+    event: "press";
+    selector: string;
+    key: string;
+}
+
 export interface TestAssertion {
     event: "assertion";
     name?: string;
@@ -37,7 +49,7 @@ export interface TestAssertion {
     attributeType?: Xrm.Attributes.AttributeType;
 }
 
-export type TestAction = FormAction | TestAssertion | WaitAction | CustomButtonAction;
+export type TestAction = FormAction | TestAssertion | WaitAction | CustomButtonAction | TypeAction | PressAction;
 
 export interface NoRecordNavigation {
     type: "noop";
