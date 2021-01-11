@@ -1,5 +1,5 @@
 import * as React from "react";
-import { EntityMetadata, TestAction, TestAssertion, TestDefinition, TestSuite } from "../domain/TestSuite";
+import { AssertionControl, AssertionDefinition, EntityMetadata, TestAction, TestAssertion, TestDefinition, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
 import { TextField } from "@fluentui/react/lib/TextField";
@@ -11,19 +11,61 @@ export interface ExportViewProps {
     importTestSuite: (suite: TestSuite) => void;
 }
 
-const generateVisibilityExpression = (e: TestAssertion, metadata: EntityMetadata) => {
-    const control = metadata?.controls?.find(c => c.controlName === e.name);
+const generateVisibilityExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
+    const internalGenerator = (e: AssertionControl, assertions: AssertionDefinition, metadata: EntityMetadata) => {
+        const control = metadata?.controls?.find(c => c.controlName === e.name);
 
-    switch (control?.type) {
-        case "control":
-            return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(${e.assertions.expectedVisibility.type === "visible"});`;
-        case "tab":
-            return `expect((await xrmTest.Tab.get("${e.name}")).isVisible).toBe(${e.assertions.expectedVisibility.type === "visible"});`;
-        case "section":
-            return `expect((await xrmTest.Section.get("${control.tabName}", "${e.name}")).isVisible).toBe(${e.assertions.expectedVisibility.type === "visible"});`;
-        default:
-            return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(${e.assertions.expectedVisibility.type === "visible"});`;
-    }
+        switch (control?.type) {
+            case "control":
+                return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(${assertions.expectedVisibility.type === "visible"});`;
+            case "tab":
+                return `expect((await xrmTest.Tab.get("${e.name}")).isVisible).toBe(${assertions.expectedVisibility.type === "visible"});`;
+            case "section":
+                return `expect((await xrmTest.Section.get("${control.tabName}", "${e.name}")).isVisible).toBe(${assertions.expectedVisibility.type === "visible"});`;
+            default:
+                return `expect((await xrmTest.Control.get("${e.name}")).isVisible).toBe(${assertions.expectedVisibility.type === "visible"});`;
+        }
+    };
+
+    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+}
+
+const generateDisableStateExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
+    const internalGenerator = (e: AssertionControl, assertions: AssertionDefinition, metadata: EntityMetadata) => {
+        return `expect((await xrmTest.Control.get("${e.name}")).isDisabled).toBe(${assertions.expectedDisableState.type === "disabled"});`;
+    };
+
+    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+}
+
+const generateFieldLevelExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
+    const internalGenerator = (e: AssertionControl, assertions: AssertionDefinition, metadata: EntityMetadata) => {
+        return `expect((await xrmTest.Attribute.getRequiredLevel("${e.attributeName}"))).toBe("${assertions.expectedFieldLevel.type}");`;
+    };
+
+    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+}
+
+const generateValueExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
+    const internalGenerator = (e: AssertionControl, assertions: AssertionDefinition, metadata: EntityMetadata) => {
+        if (!assertions.expectedValue?.active) {
+            return undefined;
+        }
+
+        switch (assertions.expectedValue?.type) {
+            case "value":
+                return `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toStrictEqual(${stringifyValue(e.attributeType, assertions.expectedValue.value)});`;
+            case "null":
+                return `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toBeNull();`;
+            case "notnull":
+                return `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).not.toBeNull();`;
+            default:
+                return undefined;
+        }
+
+    };
+
+    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
 }
 
 const generatePreTestNavigationExpression = (test: TestDefinition, metadata: EntityMetadata): Array<string> => {
@@ -118,24 +160,18 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
             }
         case "assertion":
             return [
-                (e.assertions.expectedVisibility?.active && e.assertions.expectedVisibility?.type !== "noop")
+                ...(e.assertions.expectedVisibility?.active && e.assertions.expectedVisibility?.type !== "noop")
                     ? generateVisibilityExpression(e, metadata)
-                    : undefined,
-                (e.assertions.expectedDisableState?.active && e.assertions.expectedDisableState?.type !== "noop")
-                    ? `expect((await xrmTest.Control.get("${e.name}")).isDisabled).toBe(${e.assertions.expectedDisableState.type === "disabled"});`
-                    : undefined,
-                (e.assertions.expectedFieldLevel?.active && e.assertions.expectedFieldLevel?.type !== "noop")
-                    ? `expect((await xrmTest.Attribute.getRequiredLevel("${e.attributeName}"))).toBe("${e.assertions.expectedFieldLevel.type}");`
-                    : undefined,
-                (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "value")
-                    ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toStrictEqual(${stringifyValue(e.attributeType, e.assertions.expectedValue.value)});`
-                    : undefined,
-                (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "null")
-                    ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).toBeNull();`
-                    : undefined,
-                (e.assertions.expectedValue?.active && e.assertions.expectedValue?.type === "notnull")
-                ? `expect((await xrmTest.Attribute.getValue("${e.attributeName}"))).not.toBeNull();`
-                    : undefined,
+                    : [undefined],
+                ...(e.assertions.expectedDisableState?.active && e.assertions.expectedDisableState?.type !== "noop")
+                    ? generateDisableStateExpression(e, metadata)
+                    : [undefined],
+                ...(e.assertions.expectedFieldLevel?.active && e.assertions.expectedFieldLevel?.type !== "noop")
+                    ? generateFieldLevelExpression(e, metadata)
+                    : [undefined],
+                ...(e.assertions.expectedValue?.active && e.assertions.expectedValue?.type !== "noop")
+                    ? generateValueExpression(e, metadata)
+                    : [undefined]
             ];
         default:
             return [""];
@@ -201,7 +237,7 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
         
 ${state.tests.filter(t => !!t).map(t => {
     return [
-        `test("${t.name}", TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name}.png"), async () => {`,
+        `test(${stringifyValue("string", t.name)}, TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name.replace(/\W/g, "")}.png"), async () => {`,
         ...generatePreTestNavigationExpression(t, state.metadata[t.entityLogicalName]).filter(e => !!e),
         ...(t.actions || [])
             .reduce((all, cur) => [...all, ...generateExpression(cur, state.metadata[t.entityLogicalName])], []),

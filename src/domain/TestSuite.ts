@@ -41,12 +41,16 @@ export interface PressAction {
     key: string;
 }
 
-export interface TestAssertion {
-    event: "assertion";
+export interface AssertionControl {
     name?: string;
     attributeName?: string;
-    assertions: AssertionDefinition;
     attributeType?: Xrm.Attributes.AttributeType;
+};
+
+export interface TestAssertion {
+    event: "assertion";
+    controls: Array<AssertionControl>;
+    assertions: AssertionDefinition;
 }
 
 export type TestAction = FormAction | TestAssertion | WaitAction | CustomButtonAction | TypeAction | PressAction;

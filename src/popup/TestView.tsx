@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AssertionDefinition, CustomButtonAction, ExistingRecordNavigation, FormAction, PressAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TypeAction, WaitAction } from "../domain/TestSuite";
+import { AssertionControl, AssertionDefinition, CustomButtonAction, ExistingRecordNavigation, FormAction, PressAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TypeAction, WaitAction } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
 import { Dropdown, DropdownMenuItemType, IDropdownOption, IDropdownProps } from "@fluentui/react/lib/Dropdown";
@@ -32,7 +32,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
     const addAssertion = () => {
         const update: TestDefinition = {
             ...test,
-            actions: (test.actions ?? []).concat([{ event: "assertion", assertions: {} }])};
+            actions: (test.actions ?? []).concat([{ event: "assertion", controls: [], assertions: {} }])};
         updateTest(test.id, update);
     };
 
@@ -206,22 +206,37 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
     }
 
     const onUpdateAssertionName = (index: number, option: IDropdownOption) => {
+        if (!option) {
+            return;
+        }
+
         const action = test.actions[index] as TestAssertion;
-        action.name = option.id;
 
-        const control = suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.controlName === option.id);
+        if (option.selected) {
+            const assertionControl: AssertionControl = {}
+            assertionControl.name = option.id;
 
-        action.attributeType = control?.type === "control" ? control?.attributeType : undefined;
-        action.attributeName = control?.type === "control" ? control?.logicalName : undefined;
+            const control = suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.controlName === option.id);
 
-        const element = formState?.controlStates?.find(e => e.controlName === option.id);
+            assertionControl.attributeType = control?.type === "control" ? control?.attributeType : undefined;
+            assertionControl.attributeName = control?.type === "control" ? control?.logicalName : undefined;
 
-        action.assertions = {
-            expectedDisableState: { type: element?.disabled ? "disabled" : "enabled" },
-            expectedFieldLevel: { type: element?.requiredLevel ?? "noop" },
-            expectedValue: { type: "value", value: element?.value },
-            expectedVisibility: { type: element?.visible ? "visible" : "hidden" }
-        } as AssertionDefinition;
+            const element = formState?.controlStates?.find(e => e.controlName === option.id);
+
+            if (Object.keys(action.assertions).length === 0) {
+                action.assertions = {
+                    expectedDisableState: { type: element?.disabled ? "disabled" : "enabled" },
+                    expectedFieldLevel: { type: element?.requiredLevel ?? "noop" },
+                    expectedValue: { type: "value", value: element?.value },
+                    expectedVisibility: { type: element?.visible ? "visible" : "hidden" }
+                } as AssertionDefinition;
+            }
+
+            action.controls.push(assertionControl);
+        }
+        else {
+            action.controls = action.controls.filter(c => c.name !== option.id);
+        }
 
         updateTest(test.id, test);
     }
@@ -521,14 +536,15 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
                         <Dropdown
                             onChange={(e, v) => onUpdateAssertionName(i, v)}
-                            selectedKey={action.name}
+                            selectedKeys={action.controls.map(c => c.name)}
                             styles={{root: { flex: "1", marginLeft: "5px", width: "200px" }}}
                             options={options}
+                            multiSelect
                         />
                         { buttons }
                     </div>,
                     <div key={2} style={{display: "flex", flexDirection: "column", paddingBottom: "5px", paddingTop: "5px", width: "100%"}}>
-                        { action.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === action.name && e.type === "control" && !!e.attributeType) &&
+                        { !!action.controls.length && action.controls.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedValue?.active}
                                 onCheckedChange={(e, v) => onUpdateValueAssertionActive(i, v)}
@@ -543,14 +559,14 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}                                
                             >
                                 { action.assertions.expectedValue?.type === "value" &&
-                                    ( action.attributeType === "optionset"
-                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}].concat((suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: o.text })))} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
+                                    ( action.controls.every(c => c.attributeType === "optionset")
+                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}].concat((suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.attributeType === "optionset" && action.controls.some(ctrl => ctrl.name === c.controlName)) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: o.text })))} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
                                         : <TextField styles={{ root: { flex: "1", width: "100%", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v)} value={action.assertions.expectedValue?.value ?? ""} />
                                     )
                                 }
                             </ActionDropdown>
                         }
-                        { action.name &&
+                        { !!action.controls.length &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedVisibility?.active}
                                 onCheckedChange={(e, v) => onUpdateVisibilityAssertionActive(i, v)}
@@ -564,7 +580,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}
                             />
                         }
-                        { action.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === action.name && e.type === "control" && !!e.attributeType) &&
+                        { !!action.controls.length && action.controls.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedDisableState?.active}
                                 onCheckedChange={(e, v) => onUpdateDisableStateAssertionActive(i, v)}
@@ -578,7 +594,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}
                             />
                         }
-                        { action.name && suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === action.name && e.type === "control" && !!e.attributeType) &&
+                        { !!action.controls.length && action.controls.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedFieldLevel?.active}
                                 onCheckedChange={(e, v) => onUpdateFieldLevelAssertionActive(i, v)}
