@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "D365-UI-Test-Designer",
     "description": "A browser extension for designing and capturing D365 UI Tests",
-    "version": "0.9.4",
+    "version": "0.9.5",
     "icons": {
         "16": "icon16.png",
         "48": "icon48.png",
