@@ -29,6 +29,9 @@ export interface TestViewProps {
 }
 
 export const TestView: React.FC<TestViewProps> = ({position, test, previousTest, suite, formState, updateTest, moveTestUp, moveTestDown}) => {
+    const attributeAssertionVisible = (action: TestAction) => action.event === "assertion" && !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType));
+    const visibleAssertionVisible = (action: TestAction) => action.event === "assertion" && !!action.controls?.length;
+
     const addAssertion = () => {
         const update: TestDefinition = {
             ...test,
@@ -236,6 +239,30 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         }
         else {
             action.controls = action.controls?.filter(c => c.name !== option.id);
+            
+            if (!action.controls?.length) {
+                action.assertions = {};
+            }
+        }
+
+        if (!attributeAssertionVisible(action)) {
+            if (action.assertions.expectedDisableState) {
+                action.assertions.expectedDisableState.active = false;
+            }
+
+            if (action.assertions.expectedFieldLevel) {
+                action.assertions.expectedFieldLevel.active = false;
+            }
+
+            if (action.assertions.expectedValue) {
+                action.assertions.expectedValue.active = false;
+            }
+        }
+
+        if (!visibleAssertionVisible(action)) {
+            if (action.assertions.expectedVisibility) {
+                action.assertions.expectedVisibility.active = false;
+            }
         }
 
         updateTest(test.id, test);
@@ -544,7 +571,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         { buttons }
                     </div>,
                     <div key={2} style={{display: "flex", flexDirection: "column", paddingBottom: "5px", paddingTop: "5px", width: "100%"}}>
-                        { !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
+                        { attributeAssertionVisible(action) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedValue?.active}
                                 onCheckedChange={(e, v) => onUpdateValueAssertionActive(i, v)}
@@ -566,7 +593,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 }
                             </ActionDropdown>
                         }
-                        { !!action.controls?.length &&
+                        { visibleAssertionVisible(action) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedVisibility?.active}
                                 onCheckedChange={(e, v) => onUpdateVisibilityAssertionActive(i, v)}
@@ -580,7 +607,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}
                             />
                         }
-                        { !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
+                        { attributeAssertionVisible(action) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedDisableState?.active}
                                 onCheckedChange={(e, v) => onUpdateDisableStateAssertionActive(i, v)}
@@ -594,7 +621,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}
                             />
                         }
-                        { !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
+                        { attributeAssertionVisible(action) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedFieldLevel?.active}
                                 onCheckedChange={(e, v) => onUpdateFieldLevelAssertionActive(i, v)}
@@ -784,7 +811,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                     text: 'Press',
                                     iconProps: { iconName: 'Fingerprint' },
                                     onClick: addPressAction,
-                                    title: "Add a new button press action"
+                                    title: "Add a new keyboard button press action (such as Enter)"
                                   }
                                 ],
                                 directionalHintFixed: true
