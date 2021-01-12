@@ -232,10 +232,10 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                 } as AssertionDefinition;
             }
 
-            action.controls.push(assertionControl);
+            action.controls?.push(assertionControl);
         }
         else {
-            action.controls = action.controls.filter(c => c.name !== option.id);
+            action.controls = action.controls?.filter(c => c.name !== option.id);
         }
 
         updateTest(test.id, test);
@@ -524,7 +524,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                             options={options}
                         />
                         { action.attributeType === "optionset"
-                            ? <Dropdown options={[{key: "null", id: "null", text: "null"}].concat((suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: o.text })))} styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v.id)} selectedKey={action.value ?? "null"} />
+                            ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [ { key: action.value?.toString() ?? "null", id: action.value?.toString() ?? "null", text: action.value?.toString() ?? "null" } ].filter(option => option.id !== "null") ]} styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v.id)} selectedKey={action.value?.toString() ?? "null"} />
                             : <TextField styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v)} value={action.value ?? ""} /> 
                         }
                         { buttons }
@@ -536,7 +536,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
                         <Dropdown
                             onChange={(e, v) => onUpdateAssertionName(i, v)}
-                            selectedKeys={action.controls.map(c => c.name)}
+                            selectedKeys={action.controls?.map(c => c.name)}
                             styles={{root: { flex: "1", marginLeft: "5px", width: "200px" }}}
                             options={options}
                             multiSelect
@@ -544,7 +544,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                         { buttons }
                     </div>,
                     <div key={2} style={{display: "flex", flexDirection: "column", paddingBottom: "5px", paddingTop: "5px", width: "100%"}}>
-                        { !!action.controls.length && action.controls.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
+                        { !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedValue?.active}
                                 onCheckedChange={(e, v) => onUpdateValueAssertionActive(i, v)}
@@ -559,14 +559,14 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}                                
                             >
                                 { action.assertions.expectedValue?.type === "value" &&
-                                    ( action.controls.every(c => c.attributeType === "optionset")
-                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}].concat((suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.attributeType === "optionset" && action.controls.some(ctrl => ctrl.name === c.controlName)) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: o.text })))} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
+                                    ( action.controls?.every(c => c.attributeType === "optionset")
+                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suite.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.attributeType === "optionset" && action.controls?.some(ctrl => ctrl.name === c.controlName)) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [{ id: action.assertions.expectedValue?.value?.toString() ?? "null", key: action.assertions.expectedValue?.value?.toString() ?? "null", text: action.assertions.expectedValue?.value?.toString() ?? "null" }].filter(option => option.id !== "null")]} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
                                         : <TextField styles={{ root: { flex: "1", width: "100%", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v)} value={action.assertions.expectedValue?.value ?? ""} />
                                     )
                                 }
                             </ActionDropdown>
                         }
-                        { !!action.controls.length &&
+                        { !!action.controls?.length &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedVisibility?.active}
                                 onCheckedChange={(e, v) => onUpdateVisibilityAssertionActive(i, v)}
@@ -580,7 +580,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}
                             />
                         }
-                        { !!action.controls.length && action.controls.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
+                        { !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedDisableState?.active}
                                 onCheckedChange={(e, v) => onUpdateDisableStateAssertionActive(i, v)}
@@ -594,7 +594,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                                 ]}
                             />
                         }
-                        { !!action.controls.length && action.controls.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
+                        { !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType)) &&
                             <ActionDropdown
                                 checked={action.assertions?.expectedFieldLevel?.active}
                                 onCheckedChange={(e, v) => onUpdateFieldLevelAssertionActive(i, v)}

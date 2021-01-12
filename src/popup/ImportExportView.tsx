@@ -4,7 +4,7 @@ import { CommunicationMessage, CommunicationRequest, CommunicationResponse } fro
 import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
 import { TextField } from "@fluentui/react/lib/TextField";
 import { Button, DefaultButton, PrimaryButton } from "@fluentui/react/lib/Button";
-import { setStoredTestSuite } from "../domain/Storage";
+import { setStoredTestSuite, upgradeTestSuiteIfNecessary } from "../domain/Storage";
 
 export interface ExportViewProps {
     state: TestSuite;
@@ -27,7 +27,7 @@ const generateVisibilityExpression = (e: TestAssertion, metadata: EntityMetadata
         }
     };
 
-    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+    return e.controls?.map(c => internalGenerator(c, e.assertions, metadata)) ?? [];
 }
 
 const generateDisableStateExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
@@ -35,7 +35,7 @@ const generateDisableStateExpression = (e: TestAssertion, metadata: EntityMetada
         return `expect((await xrmTest.Control.get("${e.name}")).isDisabled).toBe(${assertions.expectedDisableState.type === "disabled"});`;
     };
 
-    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+    return e.controls?.map(c => internalGenerator(c, e.assertions, metadata)) ?? [];
 }
 
 const generateFieldLevelExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
@@ -43,7 +43,7 @@ const generateFieldLevelExpression = (e: TestAssertion, metadata: EntityMetadata
         return `expect((await xrmTest.Attribute.getRequiredLevel("${e.attributeName}"))).toBe("${assertions.expectedFieldLevel.type}");`;
     };
 
-    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+    return e.controls?.map(c => internalGenerator(c, e.assertions, metadata)) ?? [];
 }
 
 const generateValueExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
@@ -65,7 +65,7 @@ const generateValueExpression = (e: TestAssertion, metadata: EntityMetadata): Ar
 
     };
 
-    return e.controls.map(c => internalGenerator(c, e.assertions, metadata));
+    return e.controls?.map(c => internalGenerator(c, e.assertions, metadata)) ?? [];
 }
 
 const generatePreTestNavigationExpression = (test: TestDefinition, metadata: EntityMetadata): Array<string> => {
@@ -183,7 +183,9 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
 
     const triggerImport = () => {
         try {
-            importTestSuite(JSON.parse(importText));
+            const suite = JSON.parse(importText);
+            upgradeTestSuiteIfNecessary(suite);
+            importTestSuite(suite);
             setImportText("");
         }
         catch(e) {
