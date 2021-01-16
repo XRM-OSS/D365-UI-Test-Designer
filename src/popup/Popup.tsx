@@ -14,14 +14,15 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { Dialog, DialogFooter, DialogType } from "@fluentui/react/lib/Dialog";
 import { Dropdown } from "@fluentui/react/lib/Dropdown";
 import { GlobalState } from "../domain/GlobalState";
+import { useSuiteContext, useSuiteDispatch } from "../domain/SuiteContext";
 
 const sendMessage = (payload: CommunicationRequest, cb?: (r: any) => void) => {
     chrome.runtime.sendMessage(payload, cb);
 };
 
 export const PopUp: React.FC<any> = () => {
+    const [suiteState, suiteDispatch] = useSuiteContext();
     const [pageState, setPageState] = React.useState({} as PageState);
-    const [testSuite, setTestSuite] = React.useState({} as TestSuite);
     const [globalState, setGlobalState] = React.useState({} as GlobalState);
     const [activeTab, setActiveTab] = React.useState("#capture");
     const [entitySelectorHidden, setEntitySelectorHidden] = React.useState(true);
@@ -30,15 +31,15 @@ export const PopUp: React.FC<any> = () => {
     const refreshState = async () => {
         const newPageState = await getStoredPageState();
         setPageState(newPageState);
+        
         const newTestSuite = await getStoredTestSuite();
-        setTestSuite(newTestSuite);
+        suiteDispatch({
+            type: "updateSuite",
+            payload: newTestSuite
+        });
+        
         const newGlobalState = await getStoredGlobalState();
         setGlobalState(newGlobalState);
-    };
-
-    const persistTestSuite = async (suite: TestSuite) => {
-        await setStoredTestSuite(suite);
-        setTestSuite({...suite});
     };
 
     React.useEffect(() => {
@@ -67,29 +68,19 @@ export const PopUp: React.FC<any> = () => {
         sendMessage({ recipient: "page", operation: "startRecording", data: testId });
     };
 
-    const updateTest = (id: string, test: TestDefinition) => {
-        const newTests = [...testSuite.tests];
-        const position = newTests.findIndex(t => t.id === id);
-
-        if (test) {
-            newTests.splice(position, 1, test);
-        }
-        else {
-            const testToDelete = newTests[position];
-
-            // Stop recording if test that is currently deleted is in active recording
-            if (pageState.recordingToTest === testToDelete.id) {
-                stopRecording();
-            }
-
-            newTests.splice(position, 1);
-        }
-
-        persistTestSuite({...testSuite, tests: newTests});
-    }
-
     const addTest = () => {
-        persistTestSuite({...testSuite, tests: (testSuite.tests ?? []).concat([{ name: `Test ${(testSuite.tests?.length ?? 0) + 1}`, id: uuidv4(), actions: [], entityLogicalName: testEntityLogicalName, preTestNavigation: testSuite && testSuite.tests && testSuite.tests.length ? undefined : { type: "new", entity: testEntityLogicalName } }])});
+        suiteDispatch({
+            type: "addTest",
+            payload: {
+                name: `Test ${(suiteState.suite?.tests?.length ?? 0) + 1}`,
+                id: uuidv4(),
+                actions: [],
+                entityLogicalName: testEntityLogicalName,
+                preTestNavigation: suiteState.suite && suiteState.suite.tests && suiteState.suite.tests.length
+                    ? undefined 
+                    : { type: "new", entity: testEntityLogicalName }
+            }
+        });
         setEntitySelectorHidden(true);
     }
 
@@ -97,41 +88,17 @@ export const PopUp: React.FC<any> = () => {
         setEntitySelectorHidden(false);
     }
 
-    const moveTestUp = React.useCallback((id: string) => {
-            const index = testSuite.tests.findIndex(t => t.id === id);
-            if (index === 0) {
-                return;
-            }
-
-            const destinationIndex = index - 1;
-            swapPositions(testSuite.tests, index, destinationIndex);
-
-            persistTestSuite(testSuite);
-        },
-        [testSuite, testSuite.tests]
-    );
-
-    const moveTestDown = React.useCallback((id: string) => {
-            const index = testSuite.tests.findIndex(t => t.id === id);
-            if (index === testSuite.tests.length - 1) {
-                return;
-            }
-
-            const destinationIndex = index + 1;
-            swapPositions(testSuite.tests, index, destinationIndex);
-
-            persistTestSuite(testSuite);
-        },
-        [testSuite, testSuite.tests]
-    );
-
     const clear = () => {
         stopRecording();
-        persistTestSuite(defaultTestSuite);
+
+        suiteDispatch({
+            type: "updateSuite",
+            payload: defaultTestSuite
+        });
     }
 
     const menuProps: IContextualMenuProps = {
-        items: testSuite.tests?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
+        items: suiteState.suite?.tests?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
         directionalHintFixed: true,
     };
 
@@ -242,7 +209,7 @@ export const PopUp: React.FC<any> = () => {
                     label="Entity Logical Name"
                     onChange={(e, v) => setTestEntityLogicalName(v.id)}
                     selectedKey={testEntityLogicalName}
-                    options={Object.keys(testSuite?.metadata ?? {}).map(k => ({ text: k, id: k, key: k }))}
+                    options={Object.keys(suiteState.suite?.metadata ?? {}).map(k => ({ text: k, id: k, key: k }))}
                 />
                 <DialogFooter>
                     <PrimaryButton disabled={!testEntityLogicalName} onClick={addTest} text="Ok" />
@@ -257,8 +224,8 @@ export const PopUp: React.FC<any> = () => {
                 items={navItems.filter(i => !!i)}
             />
             <div style={{padding: "5px"}}>
-                { activeTab === "#capture" && <CaptureView pageState={pageState} suite={testSuite} globalState={globalState} updateTest={updateTest} updateSuite={persistTestSuite} moveTestDown={moveTestDown} moveTestUp={moveTestUp} /> }
-                { activeTab === "#export" && <ExportView importTestSuite={persistTestSuite} state={testSuite}></ExportView> }
+                { activeTab === "#capture" && <CaptureView pageState={pageState} globalState={globalState} /> }
+                { activeTab === "#export" && <ExportView /> }
             </div>
         </div>
     );

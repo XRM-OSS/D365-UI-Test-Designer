@@ -19,7 +19,7 @@ export const getStoredPageState = (): Promise<PageState> => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get("popUpState", ({popUpState}) => chrome.runtime.lastError ? reject(chrome.runtime.lastError.message) : resolve(popUpState ?? defaultPageState));
     });
-}
+};
 
 export const setStoredPageState = (state: PageState) => {
     return new Promise((resolve, reject) => {
@@ -54,22 +54,22 @@ export const getStoredTestSuite = (): Promise<TestSuite> => {
             resolve(suite);
         });
     });
-}
+};
 
 export const setStoredTestSuite = (state: TestSuite) => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.set({ testSuite: state }, () => chrome.runtime.lastError ? reject(chrome.runtime.lastError.message) : resolve(null))
     });
-}
+};
 
 export const getStoredGlobalState = (): Promise<GlobalState> => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get("globalState", ({globalState}) => chrome.runtime.lastError ? reject(chrome.runtime.lastError.message) : resolve(globalState ?? defaultGlobalState));
     });
-}
+};
 
 export const setStoredGlobalState = (state: GlobalState) => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.set({ globalState: state }, () => chrome.runtime.lastError ? reject(chrome.runtime.lastError.message) : resolve(null))
     });
-}
+};

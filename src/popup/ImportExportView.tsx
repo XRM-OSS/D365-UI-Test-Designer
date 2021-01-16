@@ -5,10 +5,9 @@ import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
 import { TextField } from "@fluentui/react/lib/TextField";
 import { Button, DefaultButton, PrimaryButton } from "@fluentui/react/lib/Button";
 import { setStoredTestSuite, upgradeTestSuiteIfNecessary } from "../domain/Storage";
+import { useSuiteContext } from "../domain/SuiteContext";
 
 export interface ExportViewProps {
-    state: TestSuite;
-    importTestSuite: (suite: TestSuite) => void;
 }
 
 const generateVisibilityExpression = (e: TestAssertion, metadata: EntityMetadata): Array<string> => {
@@ -178,8 +177,16 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
     }
 }
 
-export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) => {
+export const ExportView: React.FC<ExportViewProps> = () => {
+    const [ suiteState, suiteDispatch ] = useSuiteContext();
     const [importText, setImportText] = React.useState("");
+
+    const importTestSuite = (suite: TestSuite) => {
+        suiteDispatch({
+            type: "updateSuite",
+            payload: suite
+        });
+    };
 
     const triggerImport = () => {
         try {
@@ -234,15 +241,15 @@ export const ExportView: React.FC<ExportViewProps> = ({state, importTestSuite}) 
             const [url, user, password, mfaSecret] = config.split(",");
     
             await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
-            ${(!state.settings || !state.settings.appId) ? "" : `await xrmTest.Navigation.openAppById("${state.settings.appId}");`}
+            ${(!suiteState.suite?.settings || !suiteState.suite?.settings.appId) ? "" : `await xrmTest.Navigation.openAppById("${suiteState.suite?.settings.appId}");`}
         });
         
-${state.tests.filter(t => !!t).map(t => {
+${suiteState.suite?.tests.filter(t => !!t).map(t => {
     return [
         `test(${stringifyValue("string", t.name)}, TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name.replace(/\W/g, "")}.png"), async () => {`,
-        ...generatePreTestNavigationExpression(t, state.metadata[t.entityLogicalName]).filter(e => !!e),
+        ...generatePreTestNavigationExpression(t, suiteState.suite?.metadata[t.entityLogicalName]).filter(e => !!e),
         ...(t.actions || [])
-            .reduce((all, cur) => [...all, ...generateExpression(cur, state.metadata[t.entityLogicalName])], []),
+            .reduce((all, cur) => [...all, ...generateExpression(cur, suiteState.suite?.metadata[t.entityLogicalName])], []),
         "}));"
     ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "}));") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
 }).join("\n\n")}
@@ -253,7 +260,7 @@ ${state.tests.filter(t => !!t).map(t => {
     });
     
     /** Do not delete, below JSON is your test definition for reimport to D365-UI-Test-Designer
-    ${JSON.stringify(state)}
+    ${JSON.stringify(suiteState.suite)}
     */
     `;
 
