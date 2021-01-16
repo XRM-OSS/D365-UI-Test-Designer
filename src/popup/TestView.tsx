@@ -15,19 +15,20 @@ import { mergeStyleSets } from "@fluentui/react/lib/Styling";
 import { swapPositions } from "../domain/SwapPositions";
 import { StandardControl } from "../domain/ControlTypes";
 import { ActionDropdown } from "./ActionDropdown";
-import { useSuiteContext } from "../domain/SuiteContext";
+import { useSuiteContext, useSuiteDispatch } from "../domain/SuiteContext";
 
 export interface TestViewProps {
     previousTest: TestDefinition;
     test: TestDefinition;
     position: number;
     formState: FormState;
+    suite: TestSuite;
 }
 
-export const TestView: React.FC<TestViewProps> = ({position, test, previousTest, formState}) => {
-    const [ suiteState, suiteDispatch ] = useSuiteContext();
+const TestViewRender: React.FC<TestViewProps> = ({position, test, suite, previousTest, formState}) => {
+    const suiteDispatch = useSuiteDispatch();
 
-    const attributeAssertionVisible = (action: TestAction) => action.event === "assertion" && !!action.controls?.length && action.controls?.every(c => suiteState.suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType));
+    const attributeAssertionVisible = (action: TestAction) => action.event === "assertion" && !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType));
     const visibleAssertionVisible = (action: TestAction) => action.event === "assertion" && !!action.controls?.length;
 
     const updateTest = (id: string, data: TestDefinition) => {
@@ -128,8 +129,8 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         updateTest(test.id, update);
     };
     
-    const previousSortedElements = !previousTest ? [] : (suiteState.suite?.metadata[previousTest.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
-    const sortedElements = (suiteState.suite?.metadata[test.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
+    const previousSortedElements = !previousTest ? [] : (suite?.metadata[previousTest.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
+    const sortedElements = (suite?.metadata[test.entityLogicalName]?.controls ?? []).sort((a, b) => a.label.localeCompare(b.label));
 
     const options: IDropdownOption[] = [
         { key: 'attributesHeader', text: 'Attribute Controls', itemType: DropdownMenuItemType.Header },
@@ -210,7 +211,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
 
     const onUpdateActionName = (index: number, option: IDropdownOption) => {
         const action = test.actions[index] as FormAction;
-        const control = suiteState.suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.type === "control" && c.controlName === option.id);
+        const control = suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.type === "control" && c.controlName === option.id);
 
         action.name = option.id;
         action.logicalName = control.type === "control" && control.logicalName;
@@ -238,7 +239,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
             const assertionControl: AssertionControl = {}
             assertionControl.name = option.id;
 
-            const control = suiteState.suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.controlName === option.id);
+            const control = suite?.metadata[test.entityLogicalName]?.controls?.find(c => c.controlName === option.id);
 
             assertionControl.attributeType = control?.type === "control" ? control?.attributeType : undefined;
             assertionControl.attributeName = control?.type === "control" ? control?.logicalName : undefined;
@@ -443,7 +444,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
 
         if (test.preTestNavigation.type === "lookup" && !!previousTest) {
             test.preTestNavigation.controlName = item.id;
-            const control = suiteState.suite?.metadata[previousTest.entityLogicalName]?.controls?.find(c => c.controlName === item.id && c.type === "control") as StandardControl;
+            const control = suite?.metadata[previousTest.entityLogicalName]?.controls?.find(c => c.controlName === item.id && c.type === "control") as StandardControl;
 
             test.preTestNavigation.logicalName = control?.logicalName ?? "";
         }
@@ -570,7 +571,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                             options={options}
                         />
                         { action.attributeType === "optionset"
-                            ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suiteState.suite?.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [ { key: action.value?.toString() ?? "null", id: action.value?.toString() ?? "null", text: action.value?.toString() ?? "null" } ].filter(option => option.id !== "null") ]} styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v.id)} selectedKey={action.value?.toString() ?? "null"} />
+                            ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suite?.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [ { key: action.value?.toString() ?? "null", id: action.value?.toString() ?? "null", text: action.value?.toString() ?? "null" } ].filter(option => option.id !== "null") ]} styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v.id)} selectedKey={action.value?.toString() ?? "null"} />
                             : <TextField styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v)} value={action.value ?? ""} /> 
                         }
                         { buttons }
@@ -606,7 +607,7 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
                             >
                                 { action.assertions.expectedValue?.type === "value" &&
                                     ( action.controls?.every(c => c.attributeType === "optionset")
-                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suiteState.suite?.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.attributeType === "optionset" && action.controls?.some(ctrl => ctrl.name === c.controlName)) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [{ id: action.assertions.expectedValue?.value?.toString() ?? "null", key: action.assertions.expectedValue?.value?.toString() ?? "null", text: action.assertions.expectedValue?.value?.toString() ?? "null" }].filter(option => option.id !== "null")]} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
+                                        ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suite?.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.attributeType === "optionset" && action.controls?.some(ctrl => ctrl.name === c.controlName)) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [{ id: action.assertions.expectedValue?.value?.toString() ?? "null", key: action.assertions.expectedValue?.value?.toString() ?? "null", text: action.assertions.expectedValue?.value?.toString() ?? "null" }].filter(option => option.id !== "null")]} styles={{ root: { flex: "1", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v.id)} selectedKey={action.assertions.expectedValue?.value?.toString() ?? "null"} />
                                         : <TextField styles={{ root: { flex: "1", width: "100%", paddingLeft: "5px", paddingTop: "5px"}}} onChange={(e, v) => onUpdateAssertionValue(i, v)} value={action.assertions.expectedValue?.value ?? ""} />
                                     )
                                 }
@@ -904,3 +905,10 @@ export const TestView: React.FC<TestViewProps> = ({position, test, previousTest,
         </Card>
     );
 }
+
+export const TestView = React.memo(TestViewRender, (prev, next) => 
+    prev.test === next.test
+    && prev.previousTest?.id === next.previousTest?.id
+    && prev.formState === next.formState
+    && prev.suite?.metadata === next.suite?.metadata
+);

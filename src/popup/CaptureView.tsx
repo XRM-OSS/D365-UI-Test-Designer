@@ -51,7 +51,7 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState 
             </Stack.Item>
             { suiteState.suite?.tests?.filter(t => !!t).map((t, i, self) => 
                 <Stack.Item key={`stack_${t.id}`}>
-                    <TestView key={`test_${t.id}`} previousTest={i > 0 ? self[i - 1] : undefined} position={i} formState={pageState.formState} test={t} />
+                    <TestView key={`test_${t.id}`} suite={suiteState.suite} previousTest={i > 0 ? self[i - 1] : undefined} position={i} formState={pageState.formState} test={t} />
                 </Stack.Item>
             ) }
         </Stack>
