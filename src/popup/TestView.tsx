@@ -143,71 +143,53 @@ const TestViewRender: React.FC<TestViewProps> = ({position, test, suite, previou
         ...sortedElements.filter(a => a.type === "section").filter(a => a.controlName || a.label).map(a => ({ id: a.controlName, key: a.controlName, text: `${a.label} (${a.controlName})` }))
       ];
 
-    const onChangeName = React.useCallback(
-        (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-          updateTest(test.id, {...test, name: newValue });
-        },
-        [test]
-    );
+    const onChangeName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+        updateTest(test.id, {...test, name: newValue });
+    };
 
-    const onChangeDescription = React.useCallback(
-        (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-          updateTest(test.id, {...test, description: newValue });
-        },
-        [test]
-    );
+    const onChangeDescription = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+        updateTest(test.id, {...test, description: newValue });
+    };
 
-    const onDelete = React.useCallback(() => {
-          updateTest(test.id, undefined);
-        },
-        [test]
-    );
+    const onDelete = () => {
+        updateTest(test.id, undefined);
+    };
 
-    const onMoveUp = React.useCallback(() => {
-            moveTestUp(test.id);
-        },
-        [test]
-    );
+    const onMoveUp = () => {
+        moveTestUp(test.id);
+    };
 
-    const onMoveDown = React.useCallback(() => {
-            moveTestDown(test.id);
-        },
-        [test]
-    );
+    const onMoveDown = () => {
+        moveTestDown(test.id);
+    };
 
-    const onMoveActionUp = React.useCallback((index: number) => {
-            if (index === 0) {
-                return;
-            }
+    const onMoveActionUp = (index: number) => {
+        if (index === 0) {
+            return;
+        }
 
-            const destinationIndex = index - 1;
-            swapPositions(test.actions, index, destinationIndex);
+        const destinationIndex = index - 1;
+        swapPositions(test.actions, index, destinationIndex);
 
-            updateTest(test.id, test);
-        },
-        [test, test.actions]
-    );
+        updateTest(test.id, test);
+    };
 
-    const onMoveActionDown = React.useCallback((index: number) => {
-            if (index === test.actions.length - 1) {
-                return;
-            }
+    const onMoveActionDown = (index: number) => {
+        if (index === test.actions.length - 1) {
+            return;
+        }
 
-            const destinationIndex = index + 1;
-            swapPositions(test.actions, index, destinationIndex);
+        const destinationIndex = index + 1;
+        swapPositions(test.actions, index, destinationIndex);
 
-            updateTest(test.id, test);
-        },
-        [test, test.actions]
-    );
+        updateTest(test.id, test);
+    };
 
-    const onDeleteAction = React.useCallback((index: number) => {
-            test.actions.splice(index, 1);
+    const onDeleteAction = (index: number) => {
+        test.actions.splice(index, 1);
 
-            updateTest(test.id, test);
-        },
-        [test, test.actions]
-    );
+        updateTest(test.id, test);
+    };
 
     const onUpdateActionName = (index: number, option: IDropdownOption) => {
         const action = test.actions[index] as FormAction;

@@ -33,7 +33,7 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
             const position = newTests.findIndex(t => t.id === action.payload.id);
     
             if (action.payload.test) {
-                newTests.splice(position, 1, action.payload.test);
+                newTests.splice(position, 1, { ...action.payload.test });
             }
             else {   
                 newTests.splice(position, 1);
@@ -67,7 +67,7 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
                 return state;
             }
 
-            const destinationIndex = index - 1;
+            const destinationIndex = index + 1;
             const newArray = [...state.suite.tests];
             swapPositions(newArray, index, destinationIndex);
 
