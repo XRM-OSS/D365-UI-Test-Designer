@@ -28,7 +28,10 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState 
         
         suiteDispatch({
             type: "updateSuite",
-            payload: update
+            payload: {
+                suite: update,
+                persist: true
+            }
         });
     };
 

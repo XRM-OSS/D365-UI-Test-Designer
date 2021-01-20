@@ -35,7 +35,10 @@ export const PopUp: React.FC<any> = () => {
         const newTestSuite = await getStoredTestSuite();
         suiteDispatch({
             type: "updateSuite",
-            payload: newTestSuite
+            payload: {
+                suite: newTestSuite,
+                persist: false
+            }
         });
         
         const newGlobalState = await getStoredGlobalState();
@@ -93,7 +96,10 @@ export const PopUp: React.FC<any> = () => {
 
         suiteDispatch({
             type: "updateSuite",
-            payload: defaultTestSuite
+            payload: {
+                suite: defaultTestSuite,
+                persist: true
+            }
         });
     }
 

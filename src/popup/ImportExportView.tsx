@@ -184,7 +184,10 @@ export const ExportView: React.FC<ExportViewProps> = () => {
     const importTestSuite = (suite: TestSuite) => {
         suiteDispatch({
             type: "updateSuite",
-            payload: suite
+            payload: {
+                suite,
+                persist: true
+            }
         });
     };
 

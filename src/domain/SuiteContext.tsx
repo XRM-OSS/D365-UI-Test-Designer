@@ -4,7 +4,7 @@ import { swapPositions } from "./SwapPositions";
 import { TestDefinition, TestSuite } from "./TestSuite";
 
 
-type Action = { type: "updateSuite", payload: TestSuite }
+type Action = { type: "updateSuite", payload: { suite: TestSuite; persist: boolean } }
     | { type: "updateTest", payload: { id: string; test: TestDefinition } }
     | { type: "addTest", payload: TestDefinition }
     | { type: "moveTestUp", payload: { id: string } }
@@ -19,8 +19,10 @@ export type SuiteStateProps = {
 function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
     switch (action.type) {
         case "updateSuite": {
-            setStoredTestSuite(action.payload);
-            return { ...state, suite: action.payload };
+            if (action.payload.persist) {
+                setStoredTestSuite(action.payload.suite);
+            }
+            return { ...state, suite: action.payload.suite };
         }
         case "addTest": {
             const update = { ...state.suite, tests: [ ...(state.suite?.tests ?? []), action.payload ]};
