@@ -247,7 +247,7 @@ export const ExportView: React.FC<ExportViewProps> = () => {
             ${(!suiteState.suite?.settings || !suiteState.suite?.settings.appId) ? "" : `await xrmTest.Navigation.openAppById("${suiteState.suite?.settings.appId}");`}
         });
         
-${suiteState.suite?.tests.filter(t => !!t).map(t => {
+${!!suiteState.suite?.groups.length && suiteState.suite?.groups[0].tests.filter(t => !!t).map(t => {
     return [
         `test(${stringifyValue("string", t.name)}, TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name.replace(/\W/g, "")}.png"), async () => {`,
         ...generatePreTestNavigationExpression(t, suiteState.suite?.metadata[t.entityLogicalName]).filter(e => !!e),

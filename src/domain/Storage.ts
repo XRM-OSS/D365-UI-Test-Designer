@@ -1,13 +1,14 @@
 import { GlobalState } from "./GlobalState";
 import { PageState } from "./PageState";
-import { TestSuite } from "./TestSuite";
+import { TestAction, TestDefinition, TestSuite } from "./TestSuite";
+import { v4 as uuidv4 } from "uuid";
 
 export const defaultPageState: PageState = {
     recordingToTest: ""
 };
 
 export const defaultTestSuite: TestSuite = {
-    tests: [],
+    groups: [],
     metadata: {}
 };
 
@@ -29,14 +30,23 @@ export const setStoredPageState = (state: PageState) => {
 
 export const upgradeTestSuiteIfNecessary = (suite: TestSuite) => {
     // Upgrade tests if created with a version which was not able to specify assertions in multiselect
-    if (suite.tests?.some(t => t.actions?.some(a => a.event === "assertion" && !a.controls))) {
-        for (const test of suite.tests) {
+    if ((suite as any).tests?.some((t: TestDefinition) => t.actions?.some((a) => a.event === "assertion" && !a.controls))) {
+        for (const test of (suite as any).tests as Array<TestDefinition>) {
             if (!test.actions.some(a => a.event === "assertion" && !a.controls)){
                 break;
             }
 
             test.actions = test.actions.map(a => (a.event !== "assertion" || a.controls) ? a : ({...a, controls: [{ attributeName: (a as any).attributeName, attributeType: (a as any).attributeType, name: (a as any).name }]}));
         }
+    }
+
+    if ((suite as any).tests && !suite.groups) {
+        suite.groups = [{
+            id: uuidv4(),
+            name: "Default",
+            tests: (suite as any).tests
+        }];
+        (suite as any).tests = undefined;
     }
 };
 

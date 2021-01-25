@@ -102,8 +102,14 @@ export interface Settings {
     appId?: string;
 }
 
+export interface TestGroup { 
+    tests?: Array<TestDefinition>;
+    name?: string;
+    id: string;
+}
+
 export interface TestSuite {
     metadata: {[key: string]: EntityMetadata};
-    tests?: Array<TestDefinition>;
+    groups?: Array<TestGroup>;
     settings?: Settings;
 }

@@ -1,14 +1,15 @@
 import * as React from "react";
 import { defaultTestSuite, setStoredTestSuite } from "./Storage";
 import { swapPositions } from "./SwapPositions";
-import { TestDefinition, TestSuite } from "./TestSuite";
+import { TestDefinition, TestGroup, TestSuite } from "./TestSuite";
 
 
 type Action = { type: "updateSuite", payload: { suite: TestSuite; persist: boolean } }
-    | { type: "updateTest", payload: { id: string; test: TestDefinition } }
-    | { type: "addTest", payload: TestDefinition }
-    | { type: "moveTestUp", payload: { id: string } }
-    | { type: "moveTestDown", payload: { id: string } };
+    | { type: "updateTest", payload: { groupId: string; id: string; test: TestDefinition } }
+    | { type: "addTest", payload: { groupId: string; test: TestDefinition } }
+    | { type: "addTestGroup", payload: { group: TestGroup} }
+    | { type: "moveTestUp", payload: { groupId: string; id: string } }
+    | { type: "moveTestDown", payload: { groupId: string; id: string } };
 
 export type SuiteStateDispatch = (action: Action) => void;
 
@@ -25,13 +26,33 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
             return { ...state, suite: action.payload.suite };
         }
         case "addTest": {
-            const update = { ...state.suite, tests: [ ...(state.suite?.tests ?? []), action.payload ]};
+            const group = state.suite.groups.find(g => g.id === action.payload.groupId);
+
+            if (!group) {
+                return state;
+            }
+
+            const groupUpdate: TestGroup = { ...group, tests: [ ...group.tests, action.payload.test ]};
+
+            const update = { ...state.suite, groups: state.suite.groups.map(t => t.id !== action.payload.groupId ? t : groupUpdate)};
+            setStoredTestSuite(update);
+
+            return { ...state, suite: update };
+        }
+        case "addTestGroup": {
+            const update = { ...state.suite, groups: [ ...(state.suite?.groups ?? []), action.payload.group ]};
             setStoredTestSuite(update);
 
             return { ...state, suite: update };
         }
         case "updateTest": {
-            const newTests = [...(state?.suite?.tests ?? [])];
+            const group = state.suite.groups.find(g => g.id === action.payload.groupId);
+
+            if (!group) {
+                return state;
+            }
+
+            const newTests = [...(group?.tests ?? [])];
             const position = newTests.findIndex(t => t.id === action.payload.id);
     
             if (action.payload.test) {
@@ -40,40 +61,56 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
             else {   
                 newTests.splice(position, 1);
             }
+
+            const groupUpdate: TestGroup = { ...group, tests: newTests };
     
-            const update = { ...state.suite, tests: newTests };
+            const update: TestSuite = { ...state.suite, groups: state.suite.groups.map(t => t.id !== action.payload.groupId ? t : groupUpdate) };
             setStoredTestSuite(update);
 
             return { ...state, suite: update };
         }
         case "moveTestUp": {
-            const index = state.suite.tests.findIndex(t => t.id === action.payload.id);
+            const group = state.suite.groups.find(g => g.id === action.payload.groupId);
+
+            if (!group) {
+                return state;
+            }
+
+            const index = group.tests.findIndex(t => t.id === action.payload.id);
             
             if (index === 0) {
                 return state;
             }
 
             const destinationIndex = index - 1;
-            const newArray = [...state.suite.tests];
+            const newArray = [...group.tests];
             swapPositions(newArray, index, destinationIndex);
 
-            const update = { ...state.suite, tests: newArray };
+            const groupUpdate: TestGroup = { ...group, tests: newArray };
+            const update: TestSuite = { ...state.suite, groups: state.suite.groups.map(t => t.id !== action.payload.groupId ? t : groupUpdate) };
             setStoredTestSuite(update);
 
             return { ...state, suite: update };
         }
         case "moveTestDown": {
-            const index = state.suite.tests.findIndex(t => t.id === action.payload.id);
+            const group = state.suite.groups.find(g => g.id === action.payload.groupId);
+
+            if (!group) {
+                return state;
+            }
+
+            const index = group.tests.findIndex(t => t.id === action.payload.id);
             
-            if (index === state.suite.tests.length - 1) {
+            if (index === group.tests.length - 1) {
                 return state;
             }
 
             const destinationIndex = index + 1;
-            const newArray = [...state.suite.tests];
+            const newArray = [...group.tests];
             swapPositions(newArray, index, destinationIndex);
 
-            const update = { ...state.suite, tests: newArray };
+            const groupUpdate: TestGroup = { ...group, tests: newArray };
+            const update: TestSuite = { ...state.suite, groups: state.suite.groups.map(t => t.id !== action.payload.groupId ? t : groupUpdate) };
             setStoredTestSuite(update);
 
             return { ...state, suite: update };

@@ -23,9 +23,10 @@ export interface TestViewProps {
     position: number;
     formState: FormState;
     suite: TestSuite;
+    groupId: string;
 }
 
-const TestViewRender: React.FC<TestViewProps> = ({position, test, suite, previousTest, formState}) => {
+const TestViewRender: React.FC<TestViewProps> = ({position, groupId, test, suite, previousTest, formState}) => {
     const suiteDispatch = useSuiteDispatch();
 
     const attributeAssertionVisible = (action: TestAction) => action.event === "assertion" && !!action.controls?.length && action.controls?.every(c => suite?.metadata[test.entityLogicalName]?.controls?.some(e => e.controlName === c.name && e.type === "control" && !!e.attributeType));
@@ -36,6 +37,7 @@ const TestViewRender: React.FC<TestViewProps> = ({position, test, suite, previou
             type: "updateTest",
             payload: {
                 id,
+                groupId,
                 test: data
             }
         })
@@ -45,7 +47,8 @@ const TestViewRender: React.FC<TestViewProps> = ({position, test, suite, previou
         suiteDispatch({
             type: "moveTestUp",
             payload: {
-                id
+                id,
+                groupId
             }
         });
     };
@@ -54,7 +57,8 @@ const TestViewRender: React.FC<TestViewProps> = ({position, test, suite, previou
         suiteDispatch({
             type: "moveTestDown",
             payload: {
-                id
+                id,
+                groupId
             }
         });
     };

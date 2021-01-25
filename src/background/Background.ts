@@ -38,7 +38,7 @@ const processMessageToPopUp = async (request: CommunicationResponse) => {
             }
             break;
         case "formEvent":
-            const activeTest = testSuite.tests.find(t => t.id === pageState.recordingToTest);
+            const activeTest = testSuite.groups.reduce((all, cur) => [...all, cur.tests], []).find(t => t.id === pageState.recordingToTest);
             activeTest && activeTest.actions.push(request.data);
             await setStoredTestSuite(testSuite);
             break;
