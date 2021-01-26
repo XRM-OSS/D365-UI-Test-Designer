@@ -126,6 +126,18 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState 
                             suiteState.suite?.groups?.map(g =>
                                 <PivotItem headerText={g.name ?? "Default"}>
                                     <Stack.Item>
+                                        <div style={{display: "flex", flexDirection: "row", paddingTop: "5px" }}>
+                                            <TextField styles={{root: { flex: "1" } }} value={g.name ?? "Default"}></TextField>
+                                            <div style={{ paddingLeft: "5px" }}>
+                                                <div style={{ display: "flex" }}>
+                                                    <IconButton title="Move this test group to the left" iconProps={{iconName: "ChevronLeft"}} />
+                                                    <IconButton title="Move this test group to the right" iconProps={{iconName: "ChevronRight"}} />
+                                                    <IconButton title="Delete this test group" iconProps={{iconName: "Delete"}} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Stack.Item>
+                                    <Stack.Item>
                                         <Text styles={{root: { paddingTop: "5px", fontWeight: "bold"}}}>Tests <IconButton onClick={() => showTestEntitySelector(g.id)} iconProps={{iconName: "Add"}}></IconButton></Text>
                                     </Stack.Item>
                                     {
