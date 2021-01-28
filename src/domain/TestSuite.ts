@@ -18,7 +18,7 @@ export interface AssertionDefinition {
 
 export interface WaitAction {
     event: "wait";
-    type: "duration" | "selector";
+    type: "duration" | "selector" | "uciIdle";
     duration?: number;
     selector?: string;
 }

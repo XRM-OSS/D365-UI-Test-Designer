@@ -657,16 +657,20 @@ const TestViewRender: React.FC<TestViewProps> = ({position, groupId, test, suite
                 return [
                     <div key={1} style={{display: "flex", flexDirection: "row", paddingBottom: "5px", paddingTop: "5px"}}>
                         <Text styles={{root: { paddingTop: "5px"}}} className={classNames.eventText}>{action.event}</Text>
-                        <Dropdown selectedKey={action.type ?? ""} placeholder="Specify wait type" onChange={(e, v) => onUpdateWaitActionType(i, v)} styles={{root: { paddingLeft: "5px", flex: "1"}}} options={[{key: "duration", id: "duration", text: "Duration"}, {key: "selector", id: "selector", text: "Selector"}]} />
-                        { action.type === "duration" 
-                            ? <>
+                        <Dropdown selectedKey={action.type ?? ""} placeholder="Specify wait type" onChange={(e, v) => onUpdateWaitActionType(i, v)} styles={{root: { paddingLeft: "5px", flex: "1"}}} options={[{key: "duration", id: "duration", text: "Duration"}, {key: "selector", id: "selector", text: "Selector"}, {key: "uciIdle", id: "uciIdle", text: "UCI Idle"}]} />
+                        {
+                            action.type === "duration" &&
+                            <>
                                 <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}}>Timeout duration (ms)</Text>
                                 <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateWaitActionDuration(i, v)} value={action.duration?.toString() ?? ""} />
-                              </>
-                            : <>
+                            </>
+                        }
+                        {
+                            action.type === "selector" &&
+                            <>
                                 <Text styles={{root: { paddingTop: "5px", paddingLeft: "5px"}}}>CSS Selektor</Text>
                                 <TextField styles={{root: { marginLeft: "5px", flex: "1"}}} onChange={(e, v) => onUpdateWaitActionSelector(i, v)} value={action.selector?.toString() ?? ""} />
-                              </>
+                            </>
                         }
                         { buttons }
                     </div>

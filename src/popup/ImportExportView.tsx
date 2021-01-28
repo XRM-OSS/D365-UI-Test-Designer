@@ -1,11 +1,11 @@
 import * as React from "react";
-import { AssertionControl, AssertionDefinition, EntityMetadata, TestAction, TestAssertion, TestDefinition, TestSuite } from "../domain/TestSuite";
+import { AssertionControl, AssertionDefinition, EntityMetadata, TestAction, TestAssertion, TestDefinition, TestGroup, TestSuite } from "../domain/TestSuite";
 import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
 import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
 import { TextField } from "@fluentui/react/lib/TextField";
 import { Button, DefaultButton, PrimaryButton } from "@fluentui/react/lib/Button";
 import { setStoredTestSuite, upgradeTestSuiteIfNecessary } from "../domain/Storage";
-import { useSuiteContext } from "../domain/SuiteContext";
+import { SuiteStateProps, useSuiteContext } from "../domain/SuiteContext";
 
 export interface ExportViewProps {
 }
@@ -154,6 +154,9 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
             if (e.type === "duration") {
                 return [`await page.waitForTimeout(${e.duration});`];
             }
+            else if(e.type === "uciIdle") {
+                return [`await xrmTest.waitForIdleness();`]
+            }
             else {
                 return [`await page.waitForSelector(${stringifyValue("string", e.selector)});`];
             }
@@ -176,6 +179,24 @@ const generateExpression = (e: TestAction, metadata: EntityMetadata) => {
             return [""];
     }
 }
+
+const generateGroup = (group: TestGroup, suiteState: SuiteStateProps) => {
+    return [
+        `\tdescribe(${stringifyValue("string", group.name)}, () => {`,
+        ...group.tests.filter(t => !!t)
+            .map(t => {
+                return [
+                    `test(${stringifyValue("string", t.name)}, TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name.replace(/\W/g, "")}.png"), async () => {`,
+                    ...generatePreTestNavigationExpression(t, suiteState.suite?.metadata[t.entityLogicalName]).filter(e => !!e),
+                    ...(t.actions || [])
+                        .reduce((all, cur) => [...all, ...generateExpression(cur, suiteState.suite?.metadata[t.entityLogicalName])], []),
+                    "}));"
+                ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "}));") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
+            }),
+        `\t});\n\n`
+    ]
+    .join("\n\n");
+};
 
 export const ExportView: React.FC<ExportViewProps> = () => {
     const [ suiteState, suiteDispatch ] = useSuiteContext();
@@ -214,52 +235,41 @@ export const ExportView: React.FC<ExportViewProps> = () => {
     let context: playwright.BrowserContext = null;
     let page: playwright.Page = null;
     
-    describe("Basic operations UCI", () => {
-        beforeAll(async() => {
-            // Every test may take up to 2 minutes before it times out
-            jest.setTimeout(120000);
-    
-            await xrmTest.launch("chromium", {
-                headless: !!process.env.D365_UI_TEST_HEADLESS,
-                args: [
-                    '--disable-setuid-sandbox',
-                    '--disable-infobars',
-                    '--start-fullscreen',
-                    '--window-position=0,0',
-                    '--window-size=1920,1080',
-                    '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"'
-                ]
-            })
-            .then(([b, c, p]) => {
-                browser = b;
-                context = c;
-                page = p;
-            });
+    beforeAll(async() => {
+        // Every test may take up to 2 minutes before it times out
+        jest.setTimeout(120000);
+
+        await xrmTest.launch("chromium", {
+            headless: !!process.env.D365_UI_TEST_HEADLESS,
+            args: [
+                '--disable-setuid-sandbox',
+                '--disable-infobars',
+                '--start-fullscreen',
+                '--window-position=0,0',
+                '--window-size=1920,1080',
+                '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"'
+            ]
+        })
+        .then(([b, c, p]) => {
+            browser = b;
+            context = c;
+            page = p;
         });
+    });
     
-        test("Start D365", async () => {
-            const settingsPath = path.join(__dirname, "../../settings.txt");
-            const settingsFound = fs.existsSync(settingsPath);
-            const config = settingsFound ? fs.readFileSync(settingsPath, {encoding: 'utf-8'}) : ${'`${process.env.D365_UI_TEST_URL ?? process.env.CRM_URL ?? ""},${process.env.D365_UI_TEST_USERNAME ?? process.env.USER_NAME ?? ""},${process.env.D365_UI_TEST_PASSWORD ?? process.env.USER_PASSWORD ?? ""},${process.env.D365_UI_TEST_MFA_SECRET ?? process.env.MFA_SECRET ?? ""}`'};
-            const [url, user, password, mfaSecret] = config.split(",");
-    
-            await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
-            ${(!suiteState.suite?.settings || !suiteState.suite?.settings.appId) ? "" : `await xrmTest.Navigation.openAppById("${suiteState.suite?.settings.appId}");`}
-        });
-        
-${!!suiteState.suite?.groups.length && suiteState.suite?.groups[0].tests.filter(t => !!t).map(t => {
-    return [
-        `test(${stringifyValue("string", t.name)}, TestUtils.takeScreenShotOnFailure(() => page, path.join("reports", "${t.name.replace(/\W/g, "")}.png"), async () => {`,
-        ...generatePreTestNavigationExpression(t, suiteState.suite?.metadata[t.entityLogicalName]).filter(e => !!e),
-        ...(t.actions || [])
-            .reduce((all, cur) => [...all, ...generateExpression(cur, suiteState.suite?.metadata[t.entityLogicalName])], []),
-        "}));"
-    ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "}));") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
-}).join("\n\n")}
-    
-        afterAll(() => {
-            return xrmTest.close();
-        });
+    test("Start D365", async () => {
+        const settingsPath = path.join(__dirname, "../../settings.txt");
+        const settingsFound = fs.existsSync(settingsPath);
+        const config = settingsFound ? fs.readFileSync(settingsPath, {encoding: 'utf-8'}) : ${'`${process.env.D365_UI_TEST_URL ?? process.env.CRM_URL ?? ""},${process.env.D365_UI_TEST_USERNAME ?? process.env.USER_NAME ?? ""},${process.env.D365_UI_TEST_PASSWORD ?? process.env.USER_PASSWORD ?? ""},${process.env.D365_UI_TEST_MFA_SECRET ?? process.env.MFA_SECRET ?? ""}`'};
+        const [url, user, password, mfaSecret] = config.split(",");
+
+        await xrmTest.open(url, { userName: user, password: password, mfaSecret: mfaSecret ?? undefined });
+        ${(!suiteState.suite?.settings || !suiteState.suite?.settings.appId) ? "" : `await xrmTest.Navigation.openAppById("${suiteState.suite?.settings.appId}");`}
+    });
+
+${!!suiteState.suite?.groups.length && suiteState.suite?.groups.map(g => generateGroup(g, suiteState))}
+    afterAll(() => {
+        return xrmTest.close();
     });
     
     /** Do not delete, below JSON is your test definition for reimport to D365-UI-Test-Designer

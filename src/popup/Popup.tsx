@@ -90,7 +90,7 @@ export const PopUp: React.FC<any> = () => {
     }
 
     const menuProps: IContextualMenuProps = {
-        items: suiteState.suite?.groups?.reduce((all, cur) => [...all, ...cur.tests], [])?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
+        items: suiteState.suite?.groups?.reduce((all, cur) => [...all, ...cur.tests.map(t => ({...t, name: `${t.name} (${cur.name})` }))], [])?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
         directionalHintFixed: true,
     };
 
