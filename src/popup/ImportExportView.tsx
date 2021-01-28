@@ -193,7 +193,7 @@ const generateGroup = (group: TestGroup, suiteState: SuiteStateProps) => {
                     "}));"
                 ].filter(l => !!l).map((l, i) => `${(i === 0 || l === "}));") ? "\t\t" : "\t\t\t"}${l}`).join("\n");
             }),
-        `\t});\n\n`
+        `\t});\n`
     ]
     .join("\n\n");
 };
@@ -267,7 +267,8 @@ export const ExportView: React.FC<ExportViewProps> = () => {
         ${(!suiteState.suite?.settings || !suiteState.suite?.settings.appId) ? "" : `await xrmTest.Navigation.openAppById("${suiteState.suite?.settings.appId}");`}
     });
 
-${!!suiteState.suite?.groups.length && suiteState.suite?.groups.map(g => generateGroup(g, suiteState))}
+${!!suiteState.suite?.groups.length && suiteState.suite?.groups.map(g => generateGroup(g, suiteState)).join("\n")}
+
     afterAll(() => {
         return xrmTest.close();
     });
