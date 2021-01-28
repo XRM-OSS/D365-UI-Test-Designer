@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TestDefinition, TestSuite } from "../domain/TestSuite";
+import { TestDefinition, TestGroup, TestSuite } from "../domain/TestSuite";
 import { TestView } from "./TestView";
 import { IStackTokens, Stack, StackItem } from "@fluentui/react/lib/Stack";
 import { PageState } from "../domain/PageState";
@@ -92,6 +92,44 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState 
         subText: 'If your entity does not show up here, please navigate to a form of the missing entity, so that we can collect its metadata.',
     };
 
+    const deleteGroup = (id: string) => {
+        suiteDispatch({
+            type: "updateTestGroup",
+            payload: {
+                id,
+                group: undefined
+            }
+        });
+    };
+
+    const updateGroupName = (value: string, group: TestGroup) => {
+        suiteDispatch({
+            type: "updateTestGroup",
+            payload: {
+                id: group.id,
+                group: { ...group, name: value }
+            }
+        });
+    };
+
+    const moveGroupUp = (id: string) => {
+        suiteDispatch({
+            type: "moveGroupUp",
+            payload: {
+                id
+            }
+        });
+    };
+
+    const moveGroupDown = (id: string) => {
+        suiteDispatch({
+            type: "moveGroupDown",
+            payload: {
+                id
+            }
+        });
+    };
+
     return (
         <>
             <Dialog
@@ -124,15 +162,15 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState 
                     <Pivot styles={{ root: { overflowX: "auto", overflowY: "hidden" } }}>
                         {
                             suiteState.suite?.groups?.map(g =>
-                                <PivotItem headerText={g.name ?? "Default"}>
+                                <PivotItem key={g.id} itemKey={g.id} id={g.id} headerText={g.name ?? "Default"}>
                                     <Stack.Item>
                                         <div style={{display: "flex", flexDirection: "row", paddingTop: "5px" }}>
-                                            <TextField styles={{root: { flex: "1" } }} value={g.name ?? "Default"}></TextField>
+                                            <TextField styles={{root: { flex: "1" } }} onChange={(e, v) => updateGroupName(v, g)} value={g.name ?? "Default"}></TextField>
                                             <div style={{ paddingLeft: "5px" }}>
                                                 <div style={{ display: "flex" }}>
-                                                    <IconButton title="Move this test group to the left" iconProps={{iconName: "ChevronLeft"}} />
-                                                    <IconButton title="Move this test group to the right" iconProps={{iconName: "ChevronRight"}} />
-                                                    <IconButton title="Delete this test group" iconProps={{iconName: "Delete"}} />
+                                                    <IconButton title="Move this test group to the left" onClick={() => moveGroupUp(g.id)} iconProps={{iconName: "ChevronLeft"}} />
+                                                    <IconButton title="Move this test group to the right" onClick={() => moveGroupDown(g.id)} iconProps={{iconName: "ChevronRight"}} />
+                                                    <IconButton title="Delete this test group" onClick={() => deleteGroup(g.id)} iconProps={{iconName: "Delete"}} />
                                                 </div>
                                             </div>
                                         </div>

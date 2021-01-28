@@ -8,8 +8,11 @@ type Action = { type: "updateSuite", payload: { suite: TestSuite; persist: boole
     | { type: "updateTest", payload: { groupId: string; id: string; test: TestDefinition } }
     | { type: "addTest", payload: { groupId: string; test: TestDefinition } }
     | { type: "addTestGroup", payload: { group: TestGroup} }
+    | { type: "updateTestGroup", payload: { id: string; group: TestGroup} }
     | { type: "moveTestUp", payload: { groupId: string; id: string } }
-    | { type: "moveTestDown", payload: { groupId: string; id: string } };
+    | { type: "moveTestDown", payload: { groupId: string; id: string } }
+    | { type: "moveGroupUp", payload: { id: string; } }
+    | { type: "moveGroupDown", payload: { id: string; } };
 
 export type SuiteStateDispatch = (action: Action) => void;
 
@@ -41,6 +44,22 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
         }
         case "addTestGroup": {
             const update = { ...state.suite, groups: [ ...(state.suite?.groups ?? []), action.payload.group ]};
+            setStoredTestSuite(update);
+
+            return { ...state, suite: update };
+        }
+        case "updateTestGroup": {
+            const newGroups = [...(state?.suite?.groups ?? [])];
+            const position = newGroups.findIndex(t => t.id === action.payload.id);
+    
+            if (action.payload.group) {
+                newGroups.splice(position, 1, { ...action.payload.group });
+            }
+            else {   
+                newGroups.splice(position, 1);
+            }
+    
+            const update: TestSuite = { ...state.suite, groups: newGroups };
             setStoredTestSuite(update);
 
             return { ...state, suite: update };
@@ -78,7 +97,7 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
 
             const index = group.tests.findIndex(t => t.id === action.payload.id);
             
-            if (index === 0) {
+            if (index < 1) {
                 return state;
             }
 
@@ -111,6 +130,38 @@ function stateReducer(state: SuiteStateProps, action: Action): SuiteStateProps {
 
             const groupUpdate: TestGroup = { ...group, tests: newArray };
             const update: TestSuite = { ...state.suite, groups: state.suite.groups.map(t => t.id !== action.payload.groupId ? t : groupUpdate) };
+            setStoredTestSuite(update);
+
+            return { ...state, suite: update };
+        }
+        case "moveGroupUp": {
+            const index = state.suite.groups.findIndex(g => g.id === action.payload.id);
+
+            if (index < 1) {
+                return state;
+            }
+
+            const destinationIndex = index - 1;
+            const newArray = [...state.suite.groups];
+            swapPositions(newArray, index, destinationIndex);
+
+            const update: TestSuite = { ...state.suite, groups: newArray };
+            setStoredTestSuite(update);
+
+            return { ...state, suite: update };
+        }
+        case "moveGroupDown": {
+            const index = state.suite.groups.findIndex(g => g.id === action.payload.id);
+
+            if (index === state.suite.groups.length - 1) {
+                return state;
+            }
+
+            const destinationIndex = index + 1;
+            const newArray = [...state.suite.groups];
+            swapPositions(newArray, index, destinationIndex);
+
+            const update: TestSuite = { ...state.suite, groups: newArray };
             setStoredTestSuite(update);
 
             return { ...state, suite: update };

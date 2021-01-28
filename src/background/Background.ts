@@ -4,6 +4,10 @@ import { getStoredPageState, setStoredPageState, getStoredTestSuite, setStoredTe
 
 const processMessageToPage = async (request: CommunicationRequest) => {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        if (tabs == null || tabs.length < 1) {
+            return;
+        }
+
         chrome.tabs.sendMessage(tabs[0].id, request);
     });
 };
