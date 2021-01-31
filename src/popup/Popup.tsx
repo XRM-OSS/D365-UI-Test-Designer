@@ -71,6 +71,7 @@ export const PopUp: React.FC<any> = () => {
             payload: {
                 group: {
                     id: uuidv4(),
+                    name: `Group ${(suiteState?.suite?.groups?.length ?? 0) + 1}`,
                     tests: []
                 }
             }
@@ -90,7 +91,7 @@ export const PopUp: React.FC<any> = () => {
     }
 
     const menuProps: IContextualMenuProps = {
-        items: suiteState.suite?.groups?.reduce((all, cur) => [...all, ...cur.tests.map(t => ({...t, name: `${t.name} (${cur.name})` }))], [])?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
+        items: suiteState.suite?.groups?.reduce((all, cur) => [...all, ...cur.tests.map(t => ({...t, name: `${t.name} (${cur.name ?? "Default"})` }))], [])?.filter(t => !!t).map(t => ({ key: t.id, text: t.name, onClick: () => startRecording(t.id)})),
         directionalHintFixed: true,
     };
 

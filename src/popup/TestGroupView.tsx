@@ -25,7 +25,7 @@ export const TestGroupView: React.FC<TestGroupViewProps> = ({ testGroup, suiteSt
         <>
             <Stack.Item>
                 <div style={{display: "flex", flexDirection: "row", paddingTop: "5px" }}>
-                    <TextField styles={{root: { flex: "1" } }} onChange={(e, v) => updateGroupName(v, testGroup)} value={testGroup.name ?? "Default"}></TextField>
+                    <TextField styles={{root: { flex: "1" } }} onChange={(e, v) => updateGroupName(v, testGroup)} value={testGroup.name}></TextField>
                     <div style={{ paddingLeft: "5px" }}>
                         <div style={{ display: "flex" }}>
                             <IconButton title="Move this test group to the left" onClick={() => moveGroupUp(testGroup.id)} iconProps={{iconName: "ChevronLeft"}} />
