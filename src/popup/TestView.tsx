@@ -1,13 +1,10 @@
 import * as React from "react";
-import { AssertionControl, AssertionDefinition, CustomButtonAction, ExistingRecordNavigation, FormAction, PressAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestSuite, TypeAction, WaitAction } from "../domain/TestSuite";
-import { CommunicationMessage, CommunicationRequest, CommunicationResponse } from "../domain/Communication";
-import { DefaultButton, IconButton } from "@fluentui/react/lib/Button";
-import { Dropdown, DropdownMenuItemType, IDropdownOption, IDropdownProps } from "@fluentui/react/lib/Dropdown";
-import { Checkbox } from "@fluentui/react/lib/Checkbox";
-import { Card, ICardTokens, ICardSectionStyles, ICardSectionTokens } from "@uifabric/react-cards";
+import { AssertionControl, AssertionDefinition, CustomButtonAction, FormAction, PressAction, PreTestNavigation, TestAction, TestAssertion, TestDefinition, TestGroup, TestSuite, TypeAction, WaitAction } from "../domain/TestSuite";
+import { IconButton } from "@fluentui/react/lib/Button";
+import { Dropdown, DropdownMenuItemType, IDropdownOption } from "@fluentui/react/lib/Dropdown";
+import { Card, ICardTokens, ICardSectionTokens } from "@uifabric/react-cards";
 import { TextField } from "@fluentui/react/lib/TextField";
 import { Icon } from "@fluentui/react/lib/Icon";
-import { Stack } from "@fluentui/react/lib/Stack";
 import { Text } from "@fluentui/react/lib/Text";
 import { FormState } from "../domain/PageState";
 import { ActivityItem } from "@fluentui/react/lib/ActivityItem";
@@ -15,7 +12,7 @@ import { mergeStyleSets } from "@fluentui/react/lib/Styling";
 import { swapPositions } from "../domain/SwapPositions";
 import { StandardControl } from "../domain/ControlTypes";
 import { ActionDropdown } from "./ActionDropdown";
-import { useSuiteContext, useSuiteDispatch } from "../domain/SuiteContext";
+import { useSuiteDispatch } from "../domain/SuiteContext";
 
 export interface TestViewProps {
     previousTest: TestDefinition;
@@ -727,7 +724,7 @@ const TestViewRender: React.FC<TestViewProps> = ({position, groupId, test, suite
                         value={test.name}
                         onChange={onChangeName}
                         required
-                        styles={{root: {flex: "1"}}}
+                        styles={{root: {flex: "1", paddingLeft: "5px"}}}
                     />
                     <div style={{paddingLeft: "5px", paddingTop: "30px"}}>
                         <IconButton title="Move this test one position up" onClick={onMoveUp} iconProps={{iconName: "ChevronUp"}} />

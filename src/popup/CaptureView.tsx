@@ -1,21 +1,27 @@
 import * as React from "react";
 import { TestDefinition, TestGroup, TestSuite } from "../domain/TestSuite";
-import { TestView } from "./TestView";
-import { IStackTokens, Stack, StackItem } from "@fluentui/react/lib/Stack";
+import { IStackTokens, Stack } from "@fluentui/react/lib/Stack";
 import { PageState } from "../domain/PageState";
 import { Text } from "@fluentui/react/lib/Text";
 import { TextField } from "@fluentui/react/lib/TextField";
 import { GlobalState } from "../domain/GlobalState";
 import { DefaultButton, IconButton, PrimaryButton } from "@fluentui/react/lib/Button";
 import { useSuiteContext } from "../domain/SuiteContext";
-import { Pivot, PivotItem } from "@fluentui/react/lib/Pivot";
+import { Pivot } from "@fluentui/react/lib/Pivot";
 import { v4 as uuidv4 } from "uuid";
 import { Dialog, DialogFooter, DialogType } from "@fluentui/react/lib/Dialog";
 import { Dropdown } from "@fluentui/react/lib/Dropdown";
+import { TestGroupView } from "./TestGroupView";
+import { PivotItem } from "@fluentui/react/lib/Pivot";
 
 export interface CaptureViewProps {
     pageState: PageState;
     globalState: GlobalState;
+}
+
+export interface TabStyle {
+    id: string;
+    style: React.CSSProperties;
 }
 
 export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState }) => {
@@ -163,30 +169,19 @@ export const CaptureView: React.FC<CaptureViewProps> = ({pageState, globalState 
                         {
                             suiteState.suite?.groups?.map(g =>
                                 <PivotItem key={g.id} itemKey={g.id} id={g.id} headerText={g.name ?? "Default"}>
-                                    <Stack.Item>
-                                        <div style={{display: "flex", flexDirection: "row", paddingTop: "5px" }}>
-                                            <TextField styles={{root: { flex: "1" } }} onChange={(e, v) => updateGroupName(v, g)} value={g.name ?? "Default"}></TextField>
-                                            <div style={{ paddingLeft: "5px" }}>
-                                                <div style={{ display: "flex" }}>
-                                                    <IconButton title="Move this test group to the left" onClick={() => moveGroupUp(g.id)} iconProps={{iconName: "ChevronLeft"}} />
-                                                    <IconButton title="Move this test group to the right" onClick={() => moveGroupDown(g.id)} iconProps={{iconName: "ChevronRight"}} />
-                                                    <IconButton title="Delete this test group" onClick={() => deleteGroup(g.id)} iconProps={{iconName: "Delete"}} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Stack.Item>
-                                    <Stack.Item>
-                                        <Text styles={{root: { paddingTop: "5px", fontWeight: "bold"}}}>Tests <IconButton onClick={() => showTestEntitySelector(g.id)} iconProps={{iconName: "Add"}}></IconButton></Text>
-                                    </Stack.Item>
-                                    {
-                                        g.tests?.filter(t => !!t)
-                                        .map((t, i, self) => 
-                                            <Stack.Item key={`stack_${t.id}`}>
-                                                <TestView key={`test_${t.id}`} groupId={g.id} suite={suiteState.suite} previousTest={i > 0 ? self[i - 1] : undefined} position={i} formState={pageState.formState} test={t} />
-                                            </Stack.Item>
-                                        )
-                                    }
-                                </PivotItem>)
+                                    <TestGroupView
+                                        key={g.id}
+                                        testGroup={g}
+                                        suiteState={suiteState}
+                                        pageState={pageState}
+                                        moveGroupDown={moveGroupDown}
+                                        moveGroupUp={moveGroupUp}
+                                        deleteGroup={deleteGroup} 
+                                        updateGroupName={updateGroupName}
+                                        showTestEntitySelector={showTestEntitySelector}
+                                    />
+                                </PivotItem>
+                            )
                         }
                     </Pivot>
                 </Stack.Item>
