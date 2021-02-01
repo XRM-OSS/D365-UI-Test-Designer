@@ -8,7 +8,7 @@ export interface BaseControl {
 
 export interface StandardControl extends BaseControl {
     type: "control";
-    controlType?: string;
+    controlType?: Xrm.Controls.ControlType;
     logicalName?: string;
     attributeType?: Xrm.Attributes.AttributeType;
     options?: Array<Xrm.OptionSetValue>;

@@ -93,7 +93,7 @@ const generatePreTestNavigationExpression = (test: TestDefinition, metadata: Ent
 };
 
 const stringifyValue = (attributeType: Xrm.Attributes.AttributeType, value: any) => {
-    const stringEscaper = (value: any) => value != null ? `"${value.toString()?.replace(/"/g, '\\"')}"` : "null";
+    const stringEscaper = (value: any) => value != null ? `"${value.toString()?.replace(/"/g, '\\"').replace(/\n/g, "\\n")}"` : "null";
     const defaultStringifier = (value: any) => value != null ? value.toString() : "null";
 
     switch (attributeType) {

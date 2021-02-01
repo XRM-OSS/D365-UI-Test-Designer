@@ -555,7 +555,7 @@ const TestViewRender: React.FC<TestViewProps> = ({position, groupId, test, suite
                         />
                         { action.attributeType === "optionset"
                             ? <Dropdown options={[{key: "null", id: "null", text: "null"}, ...(suite?.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.options?.map(o => ({ key: o.value.toString(), id: o.value.toString(), text: `${o.text} (${o.value})` })) ?? [ { key: action.value?.toString() ?? "null", id: action.value?.toString() ?? "null", text: action.value?.toString() ?? "null" } ].filter(option => option.id !== "null") ]} styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v.id)} selectedKey={action.value?.toString() ?? "null"} />
-                            : <TextField styles={{ root: { flex: "1", marginLeft: "5px"}}} onChange={(e, v) => onUpdateActionValue(i, v)} value={action.value ?? ""} /> 
+                            : <TextField styles={{ root: { flex: "1", marginLeft: "5px"}}} autoAdjustHeight multiline={(suite?.metadata[test.entityLogicalName]?.controls.find(c => c.type === "control" && c.controlName === action.name) as StandardControl)?.attributeType === "memo"} onChange={(e, v) => onUpdateActionValue(i, v)} value={action.value ?? ""} /> 
                         }
                         { buttons }
                     </div>
